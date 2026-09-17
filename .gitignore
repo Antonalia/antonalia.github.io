@@ -2,6 +2,10 @@
 node_modules/
 public/
 db.json
+blogInfoList.json
+_admin-config.yml
+deploy_config.json
+data/
 .deploy_git/
 
 # Local-only files
