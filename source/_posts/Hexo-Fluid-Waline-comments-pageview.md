@@ -24,20 +24,12 @@ mermaid: true
 最终结构如下：
 
 ```mermaid
-flowchart LR
-    visitor([👤 博客访客]) --> hexo[🌐 Hexo 静态页面]
-    hexo --> vercel[☁️ Vercel Waline API]
-    vercel --> neon[(💾 Neon PostgreSQL)]
+graph LR
+    visitor[博客访客] --> hexo[Hexo 静态页面]
+    hexo --> vercel[Vercel Waline API]
+    vercel --> neon[Neon PostgreSQL]
     neon --> vercel
     vercel --> hexo
-
-    classDef page fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a5f
-    classDef service fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#3b0764
-    classDef storage fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
-
-    class visitor,hexo page
-    class vercel service
-    class neon storage
 ```
 
 三个部分分工明确：
