@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="570" viewBox="0 0 1200 570">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#64748b" stroke-width="1.8"/></marker>
+    <style>
+      text { font-family: "Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", sans-serif; }
+      .title { font-size: 28px; font-weight: 700; fill: #0f172a; }
+      .label { font-size: 21px; font-weight: 600; fill: #0f172a; }
+      .note { font-size: 16px; fill: #475569; }
+      .code { font-family: "DejaVu Sans Mono", monospace; font-size: 18px; fill: #0369a1; }
+      .step { font-size: 17px; font-weight: 700; fill: #ffffff; }
+      .link { fill: none; stroke: #64748b; stroke-width: 2.5; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1200" height="570" rx="22" fill="#f8fafc"/>
+  <text x="44" y="53" class="title">验证流程示意图</text>
+  <text x="44" y="83" class="note">配置生效后，额外权限请求由自动审核处理；菜单名称可能仍显示 Custom。</text>
+
+  <g transform="translate(44 120)">
+    <rect width="340" height="112" rx="16" fill="#ffffff" stroke="#cbd5e1"/>
+    <circle cx="32" cy="34" r="16" fill="#0284c7"/><text x="32" y="40" text-anchor="middle" class="step">1</text>
+    <text x="60" y="42" class="label">保存顶层配置</text>
+    <text x="24" y="82" class="code">config.toml</text>
+  </g>
+  <path d="M384 176 H423" class="link"/>
+  <g transform="translate(430 120)">
+    <rect width="340" height="112" rx="16" fill="#ffffff" stroke="#cbd5e1"/>
+    <circle cx="32" cy="34" r="16" fill="#0284c7"/><text x="32" y="40" text-anchor="middle" class="step">2</text>
+    <text x="60" y="42" class="label">重载窗口</text>
+    <text x="24" y="82" class="code">Developer: Reload Window</text>
+  </g>
+  <path d="M770 176 H809" class="link"/>
+  <g transform="translate(816 120)">
+    <rect width="340" height="112" rx="16" fill="#ffffff" stroke="#cbd5e1"/>
+    <circle cx="32" cy="34" r="16" fill="#0284c7"/><text x="32" y="40" text-anchor="middle" class="step">3</text>
+    <text x="60" y="42" class="label">新建对话</text>
+    <text x="24" y="82" class="note">可显示 Custom (config.toml)</text>
+  </g>
+
+  <path d="M986 232 V269" class="link"/>
+  <g transform="translate(816 276)">
+    <rect width="340" height="112" rx="16" fill="#e0f2fe" stroke="#7dd3fc"/>
+    <circle cx="32" cy="34" r="16" fill="#0284c7"/><text x="32" y="40" text-anchor="middle" class="step">4</text>
+    <text x="60" y="42" class="label">核对实际审核设置</text>
+    <text x="24" y="82" class="code">reviewer = auto_review</text>
+  </g>
+  <path d="M816 332 H777" class="link"/>
+  <g transform="translate(430 276)">
+    <rect width="340" height="112" rx="16" fill="#ffffff" stroke="#cbd5e1"/>
+    <circle cx="32" cy="34" r="16" fill="#0284c7"/><text x="32" y="40" text-anchor="middle" class="step">5</text>
+    <text x="60" y="42" class="label">显式请求额外权限</text>
+    <text x="24" y="82" class="note">采用范围明确、可撤销的测试</text>
+  </g>
+  <path d="M430 332 H391" class="link"/>
+  <g transform="translate(44 276)">
+    <rect width="340" height="112" rx="16" fill="#ffffff" stroke="#cbd5e1"/>
+    <circle cx="32" cy="34" r="16" fill="#0284c7"/><text x="32" y="40" text-anchor="middle" class="step">6</text>
+    <text x="60" y="42" class="label">检查自动审核结果</text>
+    <text x="24" y="82" class="note">获批 → 执行　拒绝 → 核查原因</text>
+  </g>
+
+  <rect x="44" y="426" width="1112" height="100" rx="14" fill="#f1f5f9"/>
+  <text x="66" y="462" class="label">判断依据：有效会话设置 + 真实审核结果</text>
+  <text x="66" y="494" class="note">普通命令成功、菜单显示 Custom，或 /tmp 可写，均不足以单独证明自动审核生效。</text>
+</svg>

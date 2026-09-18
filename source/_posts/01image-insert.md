@@ -76,18 +76,3 @@ typora-root-url: ./..
 -->
 
 [//]: <img src="/images/lic.png" >
-
-
-
-<script src="https://utteranc.es/client.js"
-        repo="Antonalia/antonalia.github.io"
-        issue-term="pathname"
-        label="comment"
-        theme="github-light"
-        crossorigin="anonymous"
-        async>
-</script>
-
-
-
-

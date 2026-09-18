@@ -11,13 +11,4 @@ categories:
 哈哈，很高兴见到你，你好吗？[^1]
 </center>
 
-<script src="https://utteranc.es/client.js"
-        repo="Antonalia/antonalia.github.io"
-        issue-term="pathname"
-        label="comment"
-        theme="github-light"
-        crossorigin="anonymous"
-        async>
-</script>
-
 [^1]: 引用自我自己

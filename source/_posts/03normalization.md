@@ -71,12 +71,3 @@ $$
 
 # 参考
 [归一化 （Normalization）、标准化 （Standardization）和中心化/零均值化 （Zero-centered） - 简书 (jianshu.com)](https://www.jianshu.com/p/95a8f035c86c)
-
-<script src="https://utteranc.es/client.js"
-        repo="Antonalia/antonalia.github.io"
-        issue-term="pathname"
-        label="comment"
-        theme="github-light"
-        crossorigin="anonymous"
-        async>
-</script>

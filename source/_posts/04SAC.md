@@ -815,12 +815,3 @@ SAC当然是一个很好的想法，在很多连续动作空间的任务上都�
 # 参考
 
 [从Soft Q Learning到SAC - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/557418338)
-
-<script src="https://utteranc.es/client.js"
-        repo="Antonalia/antonalia.github.io"
-        issue-term="pathname"
-        label="comment"
-        theme="github-light"
-        crossorigin="anonymous"
-        async>
-</script>

@@ -6,6 +6,7 @@
         <%- page.author || config.author %>
       </span>
     <% } %>
+
     <% if (theme.post.meta.date.enable) { %>
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
@@ -21,7 +22,6 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         <% if (theme.post.meta.wordcount.format) { %>
-          <!-- compatible with older versions-->
           <%- theme.post.meta.wordcount.format.replace('{}', wordcount(page)) %>
         <% } else { %>
           <%- __('post.meta.wordcount', wordcount(page)) %>
@@ -35,7 +35,6 @@
         <% var awl = parseInt(theme.post.meta.min2read.awl, 10) %>
         <% var wpm = parseInt(theme.post.meta.min2read.wpm, 10) %>
         <% if (theme.post.meta.min2read.format) { %>
-          <!-- compatible with older versions-->
           <%- theme.post.meta.min2read.format.replace('{}', min2read(page, { awl: awl, wpm: wpm })) %>
         <% } else { %>
           <%- __('post.meta.min2read', min2read(page, { awl: awl, wpm: wpm })) %>
@@ -43,29 +42,18 @@
       </span>
     <% } %>
 
-    <% var views_texts = (theme.post.meta.views.format || __('post.meta.views')).split('{}') %>
-    <% if (theme.post.meta.views.enable && views_texts.length >= 2) { %>
-      <% if (theme.post.meta.views.source === 'leancloud') { %>
-        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
-          <i class="iconfont icon-eye" aria-hidden="true"></i>
-          <%- views_texts[0] %><span id="leancloud-page-views"></span><%- views_texts[1] %>
-        </span>
-        <% import_js(theme.static_prefix.internal_js, 'leancloud.js', 'defer') %>
-      
-      <% } else if (theme.post.meta.views.source === 'busuanzi')  { %>
-        <span id="busuanzi_container_page_pv" style="display: none">
-          <i class="iconfont icon-eye" aria-hidden="true"></i>
-          <%- views_texts[0] %><span id="busuanzi_value_page_pv"></span><%- views_texts[1] %>
-        </span>
-        <% import_js(theme.static_prefix.busuanzi, 'busuanzi.pure.mini.js', 'defer') %>
+    <% var waline_views_texts = (theme.post.meta.views.format || __('post.meta.views')).split('{}') %>
 
-      <% } else if (theme.post.meta.views.source === 'umami')  { %>
-        <span id="umami-page-views-container" class="post-meta" style="display: none">
-          <i class="iconfont icon-eye" aria-hidden="true"></i>
-          <%- views_texts[0] %><span id="umami-page-views"></span><%- views_texts[1] %>
+    <% if (theme.waline.pageview && waline_views_texts.length >= 2) { %>
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <%- waline_views_texts[0] %>
+        <span
+          class="waline-pageview-count"
+          data-path="<%= url_for(page.path) %>">
         </span>
-        <% import_js(theme.static_prefix.internal_js, 'umami-view.js', 'defer') %>
-      <% } %>
+        <%- waline_views_texts[1] %>
+      </span>
     <% } %>
   </div>
 <% } %>
