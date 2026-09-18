@@ -45,7 +45,7 @@
     <% var waline_views_texts = (theme.post.meta.views.format || __('post.meta.views')).split('{}') %>
 
     <% if (theme.waline.pageview && waline_views_texts.length >= 2) { %>
-      <span class="post-meta mr-2">
+      <span class="post-meta mr-2 waline-pageview-meta">
         <i class="iconfont icon-eye" aria-hidden="true"></i>
         <%- waline_views_texts[0] %>
         <span
@@ -54,6 +54,47 @@
         </span>
         <%- waline_views_texts[1] %>
       </span>
+
+      <script>
+        (function () {
+          var meta = document.querySelector('.waline-pageview-meta');
+          var count = meta && meta.querySelector('.waline-pageview-count');
+
+          if (!count) return;
+
+          var path = count.getAttribute('data-path') || window.location.pathname;
+          var cacheKey = 'waline-pageview:' + window.location.host + ':' + path;
+
+          function isValidCount(value) {
+            return /^\d+$/.test(String(value).replace(/[,\s]/g, ''));
+          }
+
+          try {
+            var cachedCount = window.localStorage.getItem(cacheKey);
+            count.textContent = isValidCount(cachedCount) ? cachedCount : '…';
+          } catch (error) {
+            count.textContent = '…';
+          }
+
+          var observer = new MutationObserver(function () {
+            var freshCount = count.textContent.trim();
+
+            if (!isValidCount(freshCount)) return;
+
+            try {
+              window.localStorage.setItem(cacheKey, freshCount);
+            } catch (error) {
+              // localStorage may be unavailable in private browsing modes.
+            }
+          });
+
+          observer.observe(count, {
+            childList: true,
+            characterData: true,
+            subtree: true
+          });
+        })();
+      </script>
     <% } %>
   </div>
 <% } %>
