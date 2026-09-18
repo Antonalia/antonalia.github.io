@@ -25,9 +25,6 @@ mermaid: true
 
 ```mermaid
 flowchart LR
-    accTitle: Waline 评论与阅读量架构
-    accDescr: 访客打开 Hexo 静态页面后，页面通过 Vercel 上的 Waline 服务读写评论和阅读量，持久数据统一保存在 Neon PostgreSQL 中
-
     visitor([👤 博客访客]) --> hexo[🌐 Hexo 静态页面]
     hexo --> vercel[☁️ Vercel Waline API]
     vercel --> neon[(💾 Neon PostgreSQL)]
