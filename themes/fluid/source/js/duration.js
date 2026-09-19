@@ -8,7 +8,7 @@ function createtime() {
     mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;}
     seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum);
     snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;}
-    document.getElementById("timeDate").innerHTML = "🐹LeLe has been with 🐶TianTIan: "+dnum+" d ";
+    document.getElementById("timeDate").innerHTML = "🐹LeLe has been with 🐶TianTian: "+dnum+" d ";
     document.getElementById("times").innerHTML = hnum + " h " + mnum + " m " + snum + " s ❤️";
 }
 setInterval("createtime()",250);

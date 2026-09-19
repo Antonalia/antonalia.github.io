@@ -154,6 +154,7 @@ Fluid.plugins = {
         clipboard.on('success', function(e) {
           e.clearSelection();
           e.trigger.innerHTML = e.trigger.innerHTML.replace('icon-copy', 'icon-success');
+          e.trigger.dispatchEvent(new CustomEvent('fluid:copy-success', { bubbles: true }));
           setTimeout(function() {
             e.trigger.innerHTML = e.trigger.innerHTML.replace('icon-success', 'icon-copy');
           }, 2000);

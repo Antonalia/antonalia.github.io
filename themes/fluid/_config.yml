@@ -83,6 +83,77 @@ fun_features:
   monitortext:
     enable: true
     text: 🌞妳是心中的日月~落在這裡~🌛
+    # 浏览器标签标题跑马灯
+    marquee:
+      enable: true
+      # 每次向左移动一个字符的间隔（毫秒）
+      interval: 500
+      # 标题首尾之间的分隔符
+      separator: "　　"
+  # 博客彩蛋：随机吐槽、复制提示、闲置提醒和访客称号
+  easter_eggs:
+    enable: true
+    copy_text: "代码已复制，Bug 是否附赠取决于缘分。"
+    idle_seconds: 45
+    idle_interval: 18
+    quip_interval: 60
+    quips:
+      - "今天的代码也有自己的想法。"
+      - "能跑就先别问原理。"
+      - "这篇文章已通过“我觉得可以”认证。"
+      - "知识加载中，进度条由心情决定。"
+      - "如果没看懂，建议先怪缓存。"
+      - "本站不生产 Bug，只负责给它们起名字。"
+      - "你看到的是文章，我看到的是下次要改的地方。"
+      - "理论上没有问题，实践上全是惊喜。"
+      - "Ctrl+S 是一种生活态度。"
+      - "搜索引擎把你送到这里，它应该有自己的理由。"
+      - "页面很安静，代码可能在偷偷报警。"
+      - "今天也在努力把“为什么”改成“原来如此”。"
+      - "写代码前胸有成竹，运行后竹子着火。"
+      - "文章内容仅供参考，灵感请自行备份。"
+      - "这里的知识保质期取决于依赖更新速度。"
+      - "遇事不决，先刷新；还不行，再怀疑人生。"
+      - "学会了叫经验，没学会叫收藏。"
+      - "本页已尽力保持理智。"
+      - "每一个 TODO 都相信自己会有明天。"
+      - "如果答案太简单，可能问题还没加载完。"
+      - "阅读不会增加发量，但可能增加疑问。"
+      - "此处省略一次成功的首次运行。"
+      - "代码不说谎，它只是报错得比较委婉。"
+      - "欢迎来到“先试一下再说”研究所。"
+    idle_messages:
+      - "你还在吗？服务器有点担心你。"
+      - "检测到你正在认真发呆。"
+      - "页面没动，但时间已经偷偷跑了。"
+      - "你已经很久没操作了，键盘怀疑自己失业了。"
+      - "鼠标正在申请“长期闲置补贴”。"
+      - "别装了，我知道你切到别的页面了。"
+      - "页面：我还开着呢，你倒是看看我啊。"
+      - "服务器刚刚问我：“这个人是不是睡着了？”"
+      - "你离开的这段时间，Bug 已经繁殖了三代。"
+      - "已进入挂机模式，经验值暂未增长。"
+      - "内容看完了吗？没看完也可以假装看完了。"
+      - "你再不动一下，我就要开始自动思考了。"
+      - "页面正在数你离开了多少秒，多少有点无聊。"
+      - "这里安静得连控制台报错都不敢出声。"
+      - "放心，文章还在，知识可能已经跑了。"
+      - "看来这段内容很适合静静地消化。"
+      - "系统未发现操作，发现了一位沉思者。"
+      - "友情提示：发呆不会自动保存。"
+      - "你是不是在等页面先开口？好吧，我先。"
+      - "欢迎回来——如果你其实还没走，就当我没说。"
+    visit_titles:
+      - { min: 1, title: "路过网友" }
+      - { min: 2, title: "回头看了一眼" }
+      - { min: 4, title: "博客熟面孔" }
+      - { min: 8, title: "本站常驻观察员" }
+      - { min: 15, title: "高级潜水员" }
+      - { min: 25, title: "内容考古队员" }
+      - { min: 40, title: "Bug 目击证人" }
+      - { min: 60, title: "服务器认证熟客" }
+      - { min: 90, title: "站长怀疑是自己人" }
+      - { min: 150, title: "互联网永久居民" }
 
   # 为 subtitle 添加打字机效果
   # Typing animation for subtitle
@@ -529,7 +600,7 @@ index:
 
     # 为空则按 hexo config.subtitle 显示
     # If empty, text based on `subtitle` in hexo config
-    text: "哈咯，这里是仓鼠小乐的个人博客，很高兴见到你！"
+    text: "哈咯，能找到这里，说明你的搜索技术不错！<br><span class='slogan-second-line'>这里分享一些已经学会的知识，以及一些看起来像学会了的知识。</span>"
     # text: "<img src='/img/bear.png' class='my-avatar' /> <br /> 哈咯，这里是仓鼠小乐的个人博客，很高兴见到你！" #添加了头像图片
 
     # 通过 API 接口作为首页副标题的内容，必须返回的是 JSON 格式，如果请求失败则按 text 字段显示，该功能必须先开启 typing 打字机功能
@@ -872,6 +943,17 @@ waline:
   dark: 'html[data-user-color-scheme="dark"]'
   wordLimit: 0
   pageSize: 10
+  reaction:
+    - /img/reactions/understood.svg
+    - /img/reactions/maybe.svg
+    - /img/reactions/bug.svg
+    - /img/reactions/bookmark.svg
+  locale:
+    reactionTitle: "读到这里，留下一个阅读结论吧"
+    reaction0: "看懂了"
+    reaction1: "好像懂了"
+    reaction2: "成功复现了新的错误"
+    reaction3: "先收藏，假装以后会看"
 
 # 畅言 Changyan
 # 基于第三方的服务
@@ -1010,7 +1092,7 @@ about:
   banner_mask_alpha: 0.3
   avatar: /img/bear.png
   name: "仓鼠小乐"
-  intro: "	大家好，我是仓鼠小乐！其实我并不是仓鼠小乐，只是我喜欢仓鼠小乐所以才叫仓鼠小乐哈哈。<br/>噢，你要是问我仓鼠小乐是谁，我是不会告诉你的哈哈。骗你的，仓鼠小乐其实是一只仓鼠，叫做小乐的仓鼠，嘻嘻。<br/>在这里我会分享一些我学习过程中的知识和一些生活日常，欢迎你常常常常常到这里来看我！"
+  intro: "<p>有一天，我对着一段跑不起来的代码研究了两个小时。检查语法、重装依赖、怀疑系统，甚至短暂地反思了一下人生。最后发现——文件没保存。</p><p>后来我问一位程序员：「你的代码为什么没有 Bug？」他说：「因为还没运行。」</p><p>我深受启发，于是建立了这个博客，专门记录代码运行之后发生的故事。这里有技术笔记、踩坑现场，以及少量在报错信息指导下完成的原创内容。这样下次遇到相同的问题，我至少可以先看看博客，再继续怀疑人生。</p><p>如果某篇文章帮助到了你，请不要感谢我，感谢那个忘记按 Ctrl+S 的下午。至于代码能不能一次运行——那属于玄学，不在本文讨论范围内。</p>"
   # 更多图标可从 https://hexo.fluid-dev.com/docs/icon/ 查找，`class` 代表图标的 css class，添加 `qrcode` 后，图标不再是链接而是悬浮二维码
   # More icons can be found from https://hexo.fluid-dev.com/docs/en/icon/  `class` is the css class of the icon. If adding `qrcode`, the icon is no longer a link, but a hovering QR code
   icons:

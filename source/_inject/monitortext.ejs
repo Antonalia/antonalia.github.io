@@ -1,8 +1,54 @@
-<% if(theme.fun_features.monitortext.enable) { %>
-	<script type="text/javascript">
-	  /*窗口监视*/
-	  var originalTitle = document.title;
-	  window.onblur = function(){document.title = "<%- theme.fun_features.monitortext.text %>"};
-	  window.onfocus = function(){document.title = originalTitle};
-	</script>
-  <% } %>
+<% if(theme.fun_features.monitortext.enable) {
+  const marquee = theme.fun_features.monitortext.marquee || {};
+%>
+  <script type="text/javascript">
+    /* 窗口监视与浏览器标签标题跑马灯 */
+    (function () {
+      var originalTitle = document.title;
+      var blurTitle = <%- JSON.stringify(theme.fun_features.monitortext.text) %>;
+      var marqueeEnabled = <%= marquee.enable !== false %>;
+      var marqueeInterval = Math.max(50, <%= Number(marquee.interval) || 350 %>);
+      var marqueeSeparator = <%- JSON.stringify(marquee.separator || '　　') %>;
+      var marqueeCharacters = [];
+      var marqueePosition = 0;
+      var marqueeTimer = null;
+
+      function renderNextTitle() {
+        document.title = marqueeCharacters.slice(marqueePosition)
+          .concat(marqueeCharacters.slice(0, marqueePosition))
+          .join('');
+        marqueePosition = (marqueePosition + 1) % marqueeCharacters.length;
+      }
+
+      function stopMarquee(title) {
+        if (marqueeTimer !== null) {
+          window.clearInterval(marqueeTimer);
+          marqueeTimer = null;
+        }
+        document.title = title;
+      }
+
+      function startMarquee(title) {
+        stopMarquee(title);
+        marqueeCharacters = Array.from(title + marqueeSeparator);
+        if (!marqueeEnabled || marqueeCharacters.length === 0) return;
+
+        marqueePosition = 1;
+        marqueeTimer = window.setInterval(renderNextTitle, marqueeInterval);
+      }
+
+      function updateTitleForPageState() {
+        if (document.hidden || !document.hasFocus()) {
+          startMarquee(blurTitle);
+        } else {
+          startMarquee(originalTitle);
+        }
+      }
+
+      window.addEventListener('blur', updateTitleForPageState);
+      window.addEventListener('focus', updateTitleForPageState);
+      document.addEventListener('visibilitychange', updateTitleForPageState);
+      updateTitleForPageState();
+    })();
+  </script>
+<% } %>

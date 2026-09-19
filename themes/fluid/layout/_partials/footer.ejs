@@ -4,6 +4,20 @@
       <%- theme.footer.content %>
     </div>
   <% } %>
+  <% if (theme.fun_features && theme.fun_features.easter_eggs && theme.fun_features.easter_eggs.enable) { %>
+    <span id="visitor-title-badge">访客称号：路过网友 · 第 1 次来访</span>
+    <% var footerQuips = theme.fun_features.easter_eggs.quips || [] %>
+    <% var footerQuip = footerQuips.length ? footerQuips[0] : '今天的代码也有自己的想法。' %>
+    <div id="quip-widget">
+      <button id="quip-mascot-toggle" type="button" aria-label="收起吐槽框" aria-expanded="true" title="点我收起吐槽">
+        <img id="quip-mascot" src="/img/quip-mascot.png" alt="" draggable="false">
+      </button>
+      <button id="random-quip-card" type="button" title="点一下换一句" aria-live="polite">
+        <span class="random-quip-content"><%= footerQuip %></span>
+      </button>
+      <button id="quip-hide-button" type="button" aria-label="隐藏到左侧边栏" title="隐藏到左侧边栏">‹</button>
+    </div>
+  <% } %>
   <% if (theme.footer.statistics.enable) { %>
     <%- partial('_partials/footer/statistics.ejs') %>
   <% } %>
