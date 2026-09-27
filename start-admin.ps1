@@ -41,7 +41,7 @@ Write-Host ''
 
 if (-not (Test-LocalPort -Port 4000)) {
   Write-Host '正在启动 Hexo 服务，请稍等...'
-  Start-Process -FilePath (Join-Path $root 'run-hexo-server.bat') -WorkingDirectory $root
+  Start-Process -FilePath (Join-Path $root 'run-hexo-server.bat') -WorkingDirectory $root -WindowStyle Hidden
 
   $ready = $false
   for ($i = 1; $i -le 30; $i++) {
@@ -56,7 +56,7 @@ if (-not (Test-LocalPort -Port 4000)) {
   if (-not $ready) {
     Write-Host ''
     Write-Host '后台暂时没有启动成功。'
-    Write-Host '请看新打开的 Hexo Local Server 窗口里有没有红色错误。'
+    Write-Host '请手动运行 run-hexo-server.bat 查看错误信息。'
     exit 1
   }
 } else {
@@ -66,6 +66,7 @@ if (-not (Test-LocalPort -Port 4000)) {
 Write-Host ''
 Write-Host "后台地址：$adminUrl"
 Write-Host "博客首页：$siteUrl"
+Write-Host "特效管理：http://localhost:4000/effects-admin/ （或双击 start-effects.bat）"
 
 if (-not $NoBrowser) {
   Start-Process $adminUrl

@@ -5,10 +5,10 @@
     /* 窗口监视与浏览器标签标题跑马灯 */
     (function () {
       var originalTitle = document.title;
-      var blurTitle = <%- JSON.stringify(theme.fun_features.monitortext.text) %>;
+      var blurTitle = <%- JSON.stringify(theme.fun_features.monitortext.text).replace(/</g, '\\u003c') %>;
       var marqueeEnabled = <%= marquee.enable !== false %>;
       var marqueeInterval = Math.max(50, <%= Number(marquee.interval) || 350 %>);
-      var marqueeSeparator = <%- JSON.stringify(marquee.separator || '　　') %>;
+      var marqueeSeparator = <%- JSON.stringify(marquee.separator || '　　').replace(/</g, '\\u003c') %>;
       var marqueeCharacters = [];
       var marqueePosition = 0;
       var marqueeTimer = null;

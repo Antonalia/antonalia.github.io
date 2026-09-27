@@ -2,7 +2,7 @@
 var easterEggs = theme.fun_features && theme.fun_features.easter_eggs
   ? theme.fun_features.easter_eggs
   : {};
-var easterEggsJson = JSON.stringify(easterEggs).replace(/</g, '\u003c');
+var easterEggsJson = JSON.stringify(easterEggs).replace(/</g, '\\u003c');
 
 %>
 <% if (easterEggs.enable) { %>
@@ -528,10 +528,10 @@ var easterEggsJson = JSON.stringify(easterEggs).replace(/</g, '\u003c');
       updateQuip();
     }
     function init() {
-      setupVisitorTitle();
-      setupCopyEasterEgg();
-      setupIdleEasterEgg();
-      setupRandomQuip();
+      if (options.visitor_enable !== false) setupVisitorTitle();
+      if (options.copy_enable !== false) setupCopyEasterEgg();
+      if (options.idle_enable !== false) setupIdleEasterEgg();
+      if (options.quip_enable !== false) setupRandomQuip();
     }
 
     if (document.readyState === 'loading') {

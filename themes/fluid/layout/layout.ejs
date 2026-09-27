@@ -66,15 +66,11 @@ var colorSchema = theme.dark_mode && theme.dark_mode.enable && theme.dark_mode.d
 
   <%- inject_point('bodyEnd') %>
   <%- partial('_partials/fun-interactions.ejs') %>
+  <%- partial('_partials/effects.ejs') %>
 
   <noscript>
     <div class="noscript-warning"><%- __('noscript_warning') %></div>
   </noscript>
 </body>
 </html>
-
-<!--单击显示文字-->
-<script type="text/javascript" src="/js/click_show_text.js"></script>
-
-
 

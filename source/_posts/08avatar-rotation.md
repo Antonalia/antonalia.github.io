@@ -1,77 +1,54 @@
 ---
-title: Hexo+Fluid中头像旋转呼吸发光的实现
-excerpt: Hexo采用Fluid主题，关于页头像会呼吸间歇发光，鼠标悬浮在头像上时头像会旋转
-date: 
-tags:
-- Hexo
-- Fluid
+title: Fluid 特效 · 头像悬停旋转与呼吸发光
+date: '2026-09-27 11:10:00'
+updated: '2026-09-27 12:00:00'
+permalink: 08avatar-rotation/
+description: 单独控制关于页头像的旋转角度、时长和呼吸光，避免普通文章图片也跟着转动。
 categories:
-- 博客
-math: false
-typora-root-url: ./.. 
+  - 博客搭建
+  - 视觉特效
+tags:
+  - Hexo
+  - Fluid
+  - 博客特效
+index_img: /images/fluid-guide/about-effects.png
 ---
-将以下代码复制到主题配置的hexo-blog\themes\fluid\source\css\_pages\_about\about.styl中
-```css
-.about-avatar
-  position relative
-  margin -8rem auto 1rem
-  width 10rem
-  height 10rem
-  z-index 3
 
-  img
-    width 100%
-    height 100%
-    border-radius 50%
-    background-color transparent
-    object-fit cover
-    box-shadow 0 2px 5px 0 rgba(0,0,0, 0.11), 0 2px 10px 0 rgba(0, 0, 0, 1) // 头像框周围黑色包裹线条
+本篇针对本站 **Fluid 1.9.8 + 本站特效扩展**。先完成[特效管理接入](/fluid-effects-manager/)，再调整以下配置。
 
-    transition: all 1.7s
-    
-    animation: shadowBlink 4s infinite; // 一次闪烁的时间
-.img-fluid:hover {
-  background-color: #00FFFF;
-  -webkit-box-shadow: 0px 0px 10px 10px rgba(255,255,255, 0.7);
-  // box-shadow: 0px 0px 70px 6px rgba(230, 230, 90, 1); // 旋转时的发光阴影，分别是水平偏移、垂直偏移、模糊半径（羽化颜色）、阴影尺寸(实心颜色)和RGBA颜色
+## 设置步骤
 
-     transform: rotate(360deg);
-     -webkit-transform: rotate(360deg);
-     -moz-transform: rotate(360deg);
-     -o-transform: rotate(360deg);
-     -ms-transform: rotate(360deg);
-}
-@keyframes shadowBlink {
-  0% {
-    box-shadow: 0px 0px 70px 6px rgba(230, 230, 90, 1); /* 初始阴影 */
-  }
-  50% {
-    box-shadow: 0px 0px 70px 6px rgba(230, 230, 90, 0.3); /* 闪烁时的半透明阴影 */
-  }
-  100% {
-    box-shadow: 0px 0px 70px 6px rgba(230, 230, 90, 1); /* 回到初始阴影 */
-  }
-}
+打开“特效管理 → 头像旋转与呼吸光”，保留启用勾选。将旋转角度设为 360、旋转时长设为 1.7 秒；呼吸周期为 4 秒，颜色可以直接用取色器修改。保存并生成后，打开 /about/，将鼠标移到圆形头像上。
 
-.about-info
-  & > div
-    margin-bottom .5rem
+![头像悬停旋转与呼吸发光对应的本地管理设置截图](/images/fluid-guide/settings-0.png)
 
-.about-name
-  font-size 1.75rem
-  font-weight bold
+## 配置位置与参数
 
-.about-intro
-  font-size 1rem
+参数位于 `source/_data/fluid_config.yml` 的 `effects.avatar`。以下为相关字段示例；请合并到已有节点，**不要用片段替换整份文件**。列表仅展示部分示例时，保存前保留你自己的完整列表。
 
-.about-icons
-  & > a:not(:last-child)
-    margin-right .5rem
-
-  & > a > i
-    font-size 1.5rem
-
+```yaml
+effects:
+  avatar:
+    enable: true
+    seconds: 1.7
+    degrees: 360
+    glow: true
+    glowSeconds: 4
+    color: '#e6e65a'
 ```
 
-## 参考
-1、[fluid主题设置关于页头像图片鼠标悬停360°旋转效果 - Wenbin's blog (zzzwb.com)](https://www.zzzwb.com/2023/09-27-css002.html#:~:text=fluid主题设置关)
+本站真正显示圆形头像的位置是关于页，图片由主题 about.avatar 指定，当前使用 /img/bear.png。首页副标题中的旧头像 HTML 已被注释，不要把首页没有头像误判为旋转失效。
+
+## 实现位置
+
+CSS 只匹配 .about-avatar img，由根节点的 effects-avatar 类控制旋转，effects-avatar-glow 控制阴影动画。不要使用 .img-fluid:hover 作为全局旋转选择器，它会误伤其他图片。
+
+统一浏览器实现位于 `source/js/blog-effects.js` 与 `source/css/blog-effects.css`，模板 `_partials/effects.ejs` 负责输出配置。
+
+## 验证与排错
+
+头像应转动一圈，移开鼠标后回到原角度；关闭“启用头像特效”后，旋转与呼吸光均停止。系统开启“减少动态效果”时动画也会停止。
+
+管理页保存后会重新生成本地站点。刷新验证无误，再按[发布教程](/fluid-08-deploy/)提交上线。
+
+[返回完整搭建与特效目录](/fluid-guide/)

@@ -1,4 +1,5 @@
 ---
+description: "本文我将介绍归一化（Normalization）、标准化（Standardization）和正则化（Regularization）"
 title: 归一化、标准化、正则化
 excerpt: 本文我将介绍归一化（Normalization）、标准化（Standardization）和正则化（Regularization）
 date: 

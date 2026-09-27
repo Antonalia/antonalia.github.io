@@ -1,0 +1,14 @@
+.about-avatar img{transition:transform var(--avatar-seconds,1.7s);animation:none}
+.about-avatar img:hover{transform:none;background-color:transparent;box-shadow:0 2px 10px #0005}
+.effects-avatar .about-avatar img:hover{transform:rotate(var(--avatar-degrees,360deg))}
+.effects-avatar-glow .about-avatar img{animation:blog-avatar-glow var(--avatar-glow-seconds,4s) ease-in-out infinite}
+@keyframes blog-avatar-glow{0%,100%{box-shadow:0 0 45px 6px var(--avatar-color,#e6e65a)}50%{box-shadow:0 0 12px 2px var(--avatar-color,#e6e65a)}}
+.effects-scrollbar{scrollbar-color:var(--scrollbar-color) transparent;scrollbar-width:thin}
+.effects-scrollbar ::-webkit-scrollbar{width:var(--scrollbar-width);height:var(--scrollbar-width)}
+.effects-scrollbar ::-webkit-scrollbar-thumb{background:var(--scrollbar-color);border-radius:20px}
+.effects-cursor body,.effects-cursor a,.effects-cursor button,.effects-cursor .banner{cursor:var(--cursor-normal),auto}
+.effects-cursor input,.effects-cursor textarea,.effects-cursor code{cursor:var(--cursor-text),text}
+.effects-cursor .copy-btn{cursor:var(--cursor-copy),copy}
+.blog-click-text{position:fixed;z-index:1200;pointer-events:none;font-weight:700;white-space:nowrap}
+.blog-effects-canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+@media(prefers-reduced-motion:reduce){.about-avatar img{animation:none!important;transition:none!important}.effects-avatar .about-avatar img:hover{transform:none}}

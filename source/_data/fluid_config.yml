@@ -1,0 +1,161 @@
+# 由本地特效管理页面维护；Fluid 官方数据覆盖配置。
+effects:
+  avatar:
+    enable: true
+    seconds: 1.7
+    degrees: 360
+    glow: true
+    glowSeconds: 4
+    color: '#e6e65a'
+  click:
+    enable: true
+    texts:
+      - ❤️小乐❤️
+    duration: 3000
+    distance: 160
+    size: 16
+    randomColor: true
+    color: '#ef7195'
+  runtime:
+    enable: true
+    start: '2019-06-09T00:00:00+08:00'
+    prefix: '🐹LeLe has been with 🐶TianTian:'
+    suffix: ❤️
+  snow:
+    enable: true
+    count: 90
+    size: 7
+    speed: 45
+    wind: -12
+    color: '#ffffff'
+    opacity: 0.7
+    mobile: true
+  lines:
+    enable: false
+    count: 60
+    distance: 140
+    width: 1
+    speed: 24
+    color: '#c8c8c8'
+    opacity: 0.6
+    mobile: false
+  scrollbar:
+    enable: true
+    width: 9
+    color: '#4f5a9c'
+  cursor:
+    enable: true
+    normal: /css/arrow.cur
+    text: /css/beam.cur
+    copy: /css/copy.cur
+fun_features:
+  monitortext:
+    enable: true
+    text: 🌞妳是心中的日月~落在這裡~🌛
+    marquee:
+      enable: true
+      interval: 500
+      separator: 　　
+  easter_eggs:
+    enable: true
+    copy_text: 代码已复制，Bug 是否附赠取决于缘分。
+    idle_seconds: 45
+    idle_interval: 18
+    quip_interval: 60
+    quips:
+      - 今天的代码也有自己的想法。
+      - 能跑就先别问原理。
+      - 这篇文章已通过“我觉得可以”认证。
+      - 知识加载中，进度条由心情决定。
+      - 如果没看懂，建议先怪缓存。
+      - 本站不生产 Bug，只负责给它们起名字。
+      - 你看到的是文章，我看到的是下次要改的地方。
+      - 理论上没有问题，实践上全是惊喜。
+      - Ctrl+S 是一种生活态度。
+      - 搜索引擎把你送到这里，它应该有自己的理由。
+      - 页面很安静，代码可能在偷偷报警。
+      - 今天也在努力把“为什么”改成“原来如此”。
+      - 写代码前胸有成竹，运行后竹子着火。
+      - 文章内容仅供参考，灵感请自行备份。
+      - 这里的知识保质期取决于依赖更新速度。
+      - 遇事不决，先刷新；还不行，再怀疑人生。
+      - 学会了叫经验，没学会叫收藏。
+      - 本页已尽力保持理智。
+      - 每一个 TODO 都相信自己会有明天。
+      - 如果答案太简单，可能问题还没加载完。
+      - 阅读不会增加发量，但可能增加疑问。
+      - 此处省略一次成功的首次运行。
+      - 代码不说谎，它只是报错得比较委婉。
+      - 欢迎来到“先试一下再说”研究所。
+    idle_messages:
+      - 你还在吗？服务器有点担心你。
+      - 检测到你正在认真发呆。
+      - 页面没动，但时间已经偷偷跑了。
+      - 你已经很久没操作了，键盘怀疑自己失业了。
+      - 鼠标正在申请“长期闲置补贴”。
+      - 别装了，我知道你切到别的页面了。
+      - 页面：我还开着呢，你倒是看看我啊。
+      - 服务器刚刚问我：“这个人是不是睡着了？”
+      - 你离开的这段时间，Bug 已经繁殖了三代。
+      - 已进入挂机模式，经验值暂未增长。
+      - 内容看完了吗？没看完也可以假装看完了。
+      - 你再不动一下，我就要开始自动思考了。
+      - 页面正在数你离开了多少秒，多少有点无聊。
+      - 这里安静得连控制台报错都不敢出声。
+      - 放心，文章还在，知识可能已经跑了。
+      - 看来这段内容很适合静静地消化。
+      - 系统未发现操作，发现了一位沉思者。
+      - 友情提示：发呆不会自动保存。
+      - 你是不是在等页面先开口？好吧，我先。
+      - 欢迎回来——如果你其实还没走，就当我没说。
+    visit_titles:
+      - min: 1
+        title: 路过网友
+      - min: 2
+        title: 回头看了一眼
+      - min: 4
+        title: 博客熟面孔
+      - min: 8
+        title: 本站常驻观察员
+      - min: 15
+        title: 高级潜水员
+      - min: 25
+        title: 内容考古队员
+      - min: 40
+        title: Bug 目击证人
+      - min: 60
+        title: 服务器认证熟客
+      - min: 90
+        title: 站长怀疑是自己人
+      - min: 150
+        title: 互联网永久居民
+    quip_enable: true
+    copy_enable: true
+    idle_enable: true
+    visitor_enable: true
+  typing:
+    enable: true
+    typeSpeed: 70
+    cursorChar: 🐾
+    loop: false
+    scope: []
+  anchorjs:
+    enable: true
+    element: h1,h2,h3,h4,h5,h6
+    placement: left
+    visible: hover
+    icon: ''
+  progressbar:
+    enable: true
+    height_px: 3
+    color: '#2299dd'
+    options:
+      showSpinner: false
+      trickleSpeed: 100
+banner:
+  parallax: true
+navbar:
+  ground_glass:
+    enable: false
+    px: 3
+    alpha: 0.7

@@ -14,7 +14,7 @@ echo Keep this window open while editing the blog.
 echo Press Ctrl+C or close this window to stop the server.
 echo.
 
-npm.cmd run server
+npm.cmd run server -- --ip 127.0.0.1
 
 echo.
 echo Hexo server stopped.

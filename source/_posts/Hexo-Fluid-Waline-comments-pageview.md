@@ -1,8 +1,10 @@
 ---
+description: 使用 Vercel 与 Neon 部署 Waline，接入评论、阅读量与缓存，附实际配置步骤和排错截图。
 title: Hexo Fluid 接入 Waline 评论与阅读量：Vercel + Neon 完整实践
 author: 仓鼠小乐
 categories:
-  - 技术
+  - 博客搭建
+  - 评论与统计
 date: 2026-09-18 21:07:31
 tags:
   - Hexo
