@@ -1,0 +1,33 @@
+VALOTRAINER 完整版 — 本站集成与开源声明
+
+Original project: https://github.com/Pratilectron/valotrainer
+Pinned commit: ded498f5eb54867bd3d55648774984f6e3a90004
+Copyright (c) 2026 Anas T.
+License: MIT — full original notice in ./LICENSE
+
+Original UI, all four modes, gunplay, player movement, buy menu, crosshair editor,
+themes, sounds and local training history are retained. Site adaptations include
+local dependency URLs, metadata, blog navigation, scoped offline caching, and
+instant Chinese/English UI localization using mainland weapon terminology.
+Language preference uses a separate storage key; original game data and profile
+codes are preserved. Terminology sources are documented in docs/valotrainer.md
+in the site repository.
+This is an unofficial fan trainer, not affiliated with or endorsed by Riot Games.
+VALORANT belongs to Riot Games. The project contains no client game assets.
+
+Three.js 0.160.0
+Source: https://github.com/mrdoob/three.js/tree/r160
+Copyright © 2010-2023 three.js authors
+MIT notice: ./licenses/three.txt
+Pinned distribution served from ./vendor/three.module.min.js.
+
+Anton and Barlow fonts
+Source: https://github.com/google/fonts/tree/main/ofl/anton
+Source: https://github.com/google/fonts/tree/main/ofl/barlow
+Font subsets obtained from Google Fonts and served locally in ./fonts/.
+Original SIL Open Font License notices: ./licenses/Anton-OFL.txt,
+./licenses/Barlow-OFL.txt.
+
+The trainer's service worker scope is /valotrainer/. Its lele-valotrainer- cache
+prefix is isolated from other website caches; updating it does not purge caches
+belonging to the blog or to the simplified /aim/ page.

@@ -2,7 +2,7 @@
 description: "介绍子类访问父类的方法"
 title: Python中super()函数的应用
 excerpt: 介绍子类访问父类的方法
-date: 
+date: '2024-09-11 16:24:31.971'
 tags:
 - python
 - python语法

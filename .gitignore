@@ -5,7 +5,7 @@ db.json
 blogInfoList.json
 _admin-config.yml
 deploy_config.json
-data/
+/data/
 .deploy_git/
 
 # Local-only files

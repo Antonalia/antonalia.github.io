@@ -2,7 +2,7 @@
 description: "property()把方法包装成属性，让那个方法以属性的形式被访问和调用，即将class.function()通过class.function进行引用，不需要()"
 title: Python中property和@property的应用
 excerpt: property()把方法包装成属性，让那个方法以属性的形式被访问和调用，即将class.function()通过class.function进行引用，不需要()
-date: 
+date: '2024-09-11 12:55:36.939'
 tags:
 - python
 - python语法

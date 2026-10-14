@@ -1,0 +1,16 @@
+{
+  "name": "VALOTRAINER — VALORANT-accurate aim lab",
+  "short_name": "VALOTRAINER",
+  "description": "VALORANT-tuned 3D aim trainer: 103° FOV, 1:1 sensitivity, full arsenal. Desktop only.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0f1923",
+  "theme_color": "#0f1923",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

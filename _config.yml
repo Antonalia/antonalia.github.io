@@ -9,7 +9,7 @@ description: '这里是仓鼠小乐的个人博客，欢迎你！'
 keywords:
 author: 仓鼠小乐
 language: zh-CN
-timezone: ''
+timezone: Asia/Shanghai
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
@@ -29,6 +29,7 @@ category_dir: categories
 code_dir: downloads/code
 i18n_dir: :lang
 skip_render:
+  - valotrainer/**
 
 # Writing
 new_post_name: :title.md # File name of new posts
@@ -80,7 +81,8 @@ meta_generator: true
 date_format: YYYY-MM-DD
 time_format: HH:mm:ss
 ## updated_option supports 'mtime', 'date', 'empty'
-updated_option: 'mtime'
+# 不把 checkout / 构建产生的文件时间当作文章更新；scripts/post-dates.js 使用 Git 修改记录。
+updated_option: 'date'
 
 # Pagination
 ## Set per_page to 0 to disable pagination

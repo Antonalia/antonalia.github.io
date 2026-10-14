@@ -1,0 +1,29 @@
+小乐练枪场 /aim/ — 开源声明
+
+本页面是独立的非官方练枪小游戏，与 Riot Games 无关联。
+VALORANT / 无畏契约名称属于 Riot Games。页面不包含游戏素材。
+
+1. VALOTRAINER
+Source: https://github.com/Pratilectron/valotrainer
+Reference commit: ded498f5eb54867bd3d55648774984f6e3a90004
+Copyright (c) 2026 Anas T.
+License: MIT — full original notice in ./licenses/VALOTRAINER.txt
+
+Camera FOV conversion, mouse sensitivity conventions, Pointer Lock fallback,
+and three-orb target practice are adapted from / inspired by js/game.js,
+js/data/mechanics.js and js/three/targets.js.
+The UI, session logic and static-page integration were implemented for this blog.
+Weapons, player movement, shop and PWA are not included.
+
+2. Three.js 0.160.0
+Source: https://github.com/mrdoob/three.js/tree/r160
+Distribution: https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js
+Copyright © 2010-2023 three.js authors
+License: MIT — full original notice in ./licenses/three.txt
+The pinned library is served locally from ./vendor/three.module.min.js.
+
+Input note
+Horizontal FOV is 103 degrees. Yaw/pitch delta = mouse movement × VAL Sens ×
+0.07 degrees. Keep the same physical mouse DPI as in VALORANT.
+Raw mouse input is requested where supported; a browser fallback may be affected
+by operating-system pointer acceleration and is not guaranteed to feel identical.

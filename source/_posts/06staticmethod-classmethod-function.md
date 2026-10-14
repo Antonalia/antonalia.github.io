@@ -2,7 +2,7 @@
 description: "介绍@staticmethod和@classmethod在函数中的应用"
 title: Python中@staticmethod和@classmethod在函数中的应用
 excerpt: 介绍@staticmethod和@classmethod在函数中的应用
-date: 
+date: '2024-09-11 13:11:50.423'
 tags:
 - python
 - python语法

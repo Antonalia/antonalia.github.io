@@ -1,0 +1,65 @@
+---
+title: 小乐练枪场
+layout: false
+comments: false
+---
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10171e">
+  <meta name="description" content="极简 VALORANT 练枪小游戏：103° 水平视野、VAL 灵敏度、三个小球。用鼠标热热手。">
+  <title>小乐练枪场 · 仓鼠小乐的个人博客</title>
+  <link rel="stylesheet" href="./aim.css">
+  <script type="module" src="./aim.mjs"></script>
+</head>
+<body>
+  <main id="aim-app">
+    <canvas id="arena" aria-label="三维小球练枪场"></canvas>
+    <header class="site-header">
+      <a class="back-link" href="/games/"><span aria-hidden="true">←</span> 小游戏</a>
+      <span class="wordmark"><span class="brand-mark" aria-hidden="true">＋</span> 小乐练枪场 <span class="wordmark-en">/ AIM</span></span>
+      <span class="fov-badge">103° <span>HFOV</span></span>
+    </header>
+
+    <section id="hud" class="hud" aria-label="本局数据" hidden>
+      <div><span>剩余时间</span><strong id="time-left">60<span class="unit">s</span></strong></div>
+      <div><span>命中</span><strong id="hit-count">0</strong></div>
+      <div><span>准确率</span><strong id="accuracy">0<span class="unit">%</span></strong></div>
+    </section>
+    <div id="crosshair" class="crosshair" aria-hidden="true" hidden><i></i><i></i><i></i><i></i></div>
+    <div id="play-hint" class="play-hint" hidden><span id="input-status">103° HFOV · VAL Sens 0.350</span><span><kbd>Esc</kbd> 暂停 <kbd>R</kbd> 重开</span></div>
+
+    <div id="menu" class="menu">
+      <section class="menu-card" aria-labelledby="menu-title">
+        <p id="menu-eyebrow" class="eyebrow"><span class="status-dot"></span> VALORANT AIM PRACTICE</p>
+        <h1 id="menu-title">瞄准，<br><span>下一颗。</span></h1>
+        <p id="menu-description" class="description">三个小球，一次专注。<br>移动鼠标瞄准，左键命中后刷新目标。</p>
+
+        <div id="results" class="results" aria-label="本局成绩" hidden>
+          <div><strong id="result-hits">0</strong><span>命中 / <span id="result-shots">0</span> 次点击</span></div>
+          <div><strong id="result-accuracy">0%</strong><span>准确率</span></div>
+          <div><strong id="result-speed">0</strong><span>命中 / 分钟</span></div>
+        </div>
+
+        <form id="settings" novalidate>
+          <div class="settings-row">
+            <label for="sensitivity">VAL 灵敏度<input id="sensitivity" name="sensitivity" type="number" inputmode="decimal" min="0.001" max="10" step="0.001" value="0.35" required aria-describedby="sens-help"></label>
+            <label for="duration">练习时长<select id="duration" name="duration"><option value="30">30 秒</option><option value="60" selected>60 秒</option></select></label>
+          </div>
+          <p id="sens-help" class="field-help">填写游戏内灵敏度，保持相同鼠标 DPI。</p>
+          <button id="start" class="start-button" type="submit" disabled><span id="start-label">正在准备练枪场…</span><span aria-hidden="true">↗</span></button>
+        </form>
+        <button id="restart" class="restart-button" type="button" hidden>放弃本局，重新开始</button>
+        <p id="status" class="status" role="status" aria-live="polite">正在加载…</p>
+        <p class="controls-hint">鼠标瞄准 <span>·</span> 左键命中 <span>·</span> <kbd>Esc</kbd> 暂停</p>
+        <p class="input-note" id="input-note">优先使用原始鼠标输入；浏览器不支持时，手感可能受系统鼠标加速影响。</p>
+      </section>
+    </div>
+
+    <footer class="site-footer"><span>一点热身，然后出发。</span><span>参考 <a href="https://github.com/Pratilectron/valotrainer" target="_blank" rel="noopener noreferrer">VALOTRAINER</a> <span class="footer-dot">·</span> <a href="./THIRD_PARTY.txt">MIT / 开源声明</a></span></footer>
+    <noscript><p class="no-script">请启用 JavaScript，并使用电脑和鼠标游玩。</p></noscript>
+  </main>
+</body>
+</html>

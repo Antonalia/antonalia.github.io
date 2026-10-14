@@ -1,0 +1,152 @@
+---
+title: 小乐数独
+layout: false
+comments: false
+---
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#456e61">
+  <meta name="description" content="来小乐的游戏角玩一局数独。随机唯一解题目、候选笔记、撤销、提示和本机进度保存。">
+  <title>小乐数独 · 仓鼠小乐的个人博客</title>
+  <link rel="preload" href="./fonts/nunito.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/zcool-kuaile.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="./sudoku.css">
+  <script src="./sudoku-engine.js" defer></script>
+  <script src="./sudoku-game.js" defer></script>
+  <script src="./sudoku-app.js" defer></script>
+</head>
+<body>
+  <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" width="0" height="0">
+    <defs>
+      <symbol id="icon-arrow-left" viewBox="0 0 24 24"><path d="m10 5-7 7 7 7M3 12h18"/></symbol>
+      <symbol id="icon-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></symbol>
+      <symbol id="icon-paw" viewBox="0 0 24 24"><path d="M7 15c-4 5 0 8 5 5 5 3 9 0 5-5-3-4-7-4-10 0Z"/><ellipse cx="4.5" cy="9" rx="2" ry="2.5"/><ellipse cx="9" cy="5" rx="2" ry="2.5"/><ellipse cx="15" cy="5" rx="2" ry="2.5"/><ellipse cx="19.5" cy="9" rx="2" ry="2.5"/></symbol>
+      <symbol id="icon-sparkle" viewBox="0 0 24 24"><path d="m12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4L12 3ZM20 2v4M18 4h4"/></symbol>
+      <symbol id="icon-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+      <symbol id="icon-play" viewBox="0 0 24 24"><path d="m8 4 12 8-12 8V4Z"/></symbol>
+      <symbol id="icon-pencil" viewBox="0 0 24 24"><path d="m15 4 5 5M4 20l5-1L20 8a2 2 0 0 0-5-5L4 14l-1 7 1-1Z"/></symbol>
+      <symbol id="icon-eraser" viewBox="0 0 24 24"><path d="m15 3 6 6-10 11H6l-4-4L15 3ZM7 11l7 7M11 20h11"/></symbol>
+      <symbol id="icon-undo" viewBox="0 0 24 24"><path d="M8 4 3 9l5 5M3 9h11a7 7 0 0 1 0 14"/></symbol>
+      <symbol id="icon-redo" viewBox="0 0 24 24"><path d="m16 4 5 5-5 5M21 9H10a7 7 0 0 0 0 14"/></symbol>
+      <symbol id="icon-check" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="6"/><path d="m7 12 3 3 7-7"/></symbol>
+      <symbol id="icon-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M8 14a7 7 0 1 1 8 0c-1.5 1-1 3-1 4H9c0-1 .5-3-1-4ZM12 2v2"/></symbol>
+      <symbol id="icon-restart" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/></symbol>
+      <symbol id="icon-moon" viewBox="0 0 24 24"><path d="M20.5 14A9 9 0 0 1 10 3a9 9 0 1 0 10.5 11Z"/></symbol>
+      <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m8 4 8 8-8 8"/></symbol>
+    </defs>
+  </svg>
+
+  <main id="sudoku-app" class="game-shell">
+    <nav class="site-nav" aria-label="返回网站">
+      <a href="/" class="home-link"><svg class="icon" aria-hidden="true"><use href="#icon-arrow-left"/></svg>返回博客</a>
+      <a href="/games/" class="games-link"><svg class="icon" aria-hidden="true"><use href="#icon-grid"/></svg>小游戏</a>
+    </nav>
+
+    <header class="game-header">
+      <div class="header-copy">
+        <p class="eyebrow"><svg class="icon" aria-hidden="true"><use href="#icon-paw"/></svg>小乐的游戏角 <span>· SUDOKU</span></p>
+        <h1>小乐<span>数独</span></h1>
+        <p class="subtitle">给脑袋一点小小的挑战。</p>
+      </div>
+      <div class="mascot-card" aria-hidden="true">
+        <img class="mascot" src="./assets/hamster-sudoku.png" alt="" width="180" height="180" fetchpriority="high">
+      </div>
+    </header>
+
+    <section class="game-workspace" aria-label="数独游戏">
+      <section class="board-card" aria-label="棋盘与进度">
+        <div class="board-topline">
+          <span id="game-difficulty" class="badge">准备出题</span>
+          <button id="pause-game" class="icon-button" type="button" disabled>
+            <svg class="icon" aria-hidden="true"><use id="pause-icon" href="#icon-pause"/></svg><span data-label>暂停</span>
+          </button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label">专注时间</span><time id="timer">00:00</time></div>
+          <div class="stat"><span class="stat-label">棋盘进度</span><strong id="remaining">剩余 — 格</strong></div>
+          <div class="stat"><span class="stat-label">小小提示</span><strong><span id="hint-count">0</span><span class="stat-unit"> 次</span></strong></div>
+        </div>
+
+        <div id="board-wrapper" class="board-wrapper">
+          <div id="board" class="board" role="grid" aria-label="9行9列数独棋盘" aria-rowcount="9" aria-colcount="9" aria-busy="true"></div>
+          <div id="pause-cover" class="pause-cover" hidden>
+            <svg class="icon pause-moon" aria-hidden="true"><use href="#icon-moon"/></svg>
+            <strong>休息一下</strong>
+            <p>棋盘正在等你回来。</p>
+            <button id="resume-game" class="action-button primary" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-play"/></svg>继续游戏</button>
+          </div>
+        </div>
+        <p id="selection-info" class="selection-info">请稍候，正在生成题目。</p>
+      </section>
+
+      <aside class="controls-card" aria-label="数独操作台">
+        <div class="controls-heading">
+          <p class="eyebrow">你的操作台</p>
+          <h2>下一格，是什么？</h2>
+          <p>选中格子，再轻点数字。</p>
+        </div>
+        <div class="difficulty-picker">
+          <label for="difficulty">新题难度</label>
+          <select id="difficulty" title="当前难度按预填数字数量区分">
+            <option value="easy">简单</option>
+            <option value="medium">中等</option>
+            <option value="hard">困难</option>
+          </select>
+        </div>
+        <button id="new-game" class="action-button primary" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-sparkle"/></svg><span>新游戏</span></button>
+
+        <div class="pad-heading"><h3>数字键盘</h3><span class="keyboard-tip">键盘 1–9 也可以</span></div>
+        <div id="number-pad" class="number-pad" aria-label="数字键盘">
+          <button type="button" data-digit="1" disabled><span class="number-value">1</span><small class="number-remaining" data-count>剩 9</small></button>
+          <button type="button" data-digit="2" disabled><span class="number-value">2</span><small class="number-remaining" data-count>剩 9</small></button>
+          <button type="button" data-digit="3" disabled><span class="number-value">3</span><small class="number-remaining" data-count>剩 9</small></button>
+          <button type="button" data-digit="4" disabled><span class="number-value">4</span><small class="number-remaining" data-count>剩 9</small></button>
+          <button type="button" data-digit="5" disabled><span class="number-value">5</span><small class="number-remaining" data-count>剩 9</small></button>
+          <button type="button" data-digit="6" disabled><span class="number-value">6</span><small class="number-remaining" data-count>剩 9</small></button>
+          <button type="button" data-digit="7" disabled><span class="number-value">7</span><small class="number-remaining" data-count>剩 9</small></button>
+          <button type="button" data-digit="8" disabled><span class="number-value">8</span><small class="number-remaining" data-count>剩 9</small></button>
+          <button type="button" data-digit="9" disabled><span class="number-value">9</span><small class="number-remaining" data-count>剩 9</small></button>
+        </div>
+
+        <div class="edit-tools" aria-label="常用操作">
+          <button id="notes-mode" class="tool-button" type="button" aria-pressed="false" disabled><svg class="icon" aria-hidden="true"><use href="#icon-pencil"/></svg><span data-label>笔记：关</span></button>
+          <button id="erase" class="tool-button" type="button" disabled><svg class="icon" aria-hidden="true"><use href="#icon-eraser"/></svg><span>清空本格</span></button>
+          <button id="undo" class="tool-button" type="button" disabled><svg class="icon" aria-hidden="true"><use href="#icon-undo"/></svg><span>撤销</span></button>
+          <button id="redo" class="tool-button" type="button" disabled><svg class="icon" aria-hidden="true"><use href="#icon-redo"/></svg><span>重做</span></button>
+        </div>
+        <div class="assist-tools" aria-label="检查与帮助">
+          <button id="check" class="assist-button" type="button" disabled><svg class="icon" aria-hidden="true"><use href="#icon-check"/></svg><span>检查答案</span></button>
+          <button id="hint" class="assist-button" type="button" disabled><svg class="icon" aria-hidden="true"><use href="#icon-bulb"/></svg><span>提示一格</span></button>
+        </div>
+        <label class="conflict-toggle"><input id="show-conflicts" type="checkbox" checked><span>提醒重复的数字</span></label>
+        <button id="restart-game" class="restart-button" type="button" disabled><svg class="icon" aria-hidden="true"><use href="#icon-restart"/></svg><span>重玩本题</span></button>
+      </aside>
+    </section>
+
+    <section class="game-feedback" aria-label="游戏消息">
+      <div id="feedback-bubble" class="status-bubble" data-tone="info"><svg class="icon" aria-hidden="true"><use href="#icon-paw"/></svg><p id="status" role="status" aria-live="polite">正在生成唯一解题目……</p></div>
+      <p id="save-status" class="help">进度自动保存在当前浏览器。</p>
+    </section>
+
+    <details class="how-to">
+      <summary><svg class="icon" aria-hidden="true"><use href="#icon-grid"/></svg><span>第一次玩？看看小规则</span><svg class="icon summary-chevron" aria-hidden="true"><use href="#icon-chevron"/></svg></summary>
+      <ul>
+        <li>每行、每列和每个 3×3 宫都填入 1–9，数字不能重复。</li>
+        <li>点击格子，再点击数字或按键盘 1–9 填数；再次输入同一数字会清空本格。预填数字不能修改。</li>
+        <li>方向键移动；Delete、Backspace 或 0 清空；N 切换笔记；Ctrl / ⌘ + Z 撤销，Ctrl / ⌘ + Shift + Z 重做。</li>
+        <li>笔记模式在空格中添加或取消候选数字；填数会清理同行、同列、同宫的对应笔记。</li>
+        <li>数字键下的“剩”是还未填入的该数字数量，只作参考，不限制输入。</li>
+        <li>“检查答案”标记与正确解不符的已填数字；“提示一格”会填入选中格的答案，或寻找一个待填写、待纠正的格子。</li>
+        <li>切到其他页面时自动停止计时，回来后继续；手动暂停会遮住棋盘。</li>
+        <li>刷新或重新打开会恢复本题和笔记；刷新前的撤销记录不保留。存档仅在本机当前浏览器有效。</li>
+        <li>难度按预填数字数量区分，不代表严格的解题技巧等级。每道题只有一个解。</li>
+      </ul>
+    </details>
+    <noscript><p>请启用 JavaScript 后游玩数独。</p></noscript>
+  </main>
+</body>
+</html>

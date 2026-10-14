@@ -1,6 +1,6 @@
 ---
 title: Fluid 特效 · 离开页面时切换标签标题
-date: '2026-09-27 11:17:00'
+date: '2024-09-16 21:15:20.940'
 updated: '2026-09-27 12:00:00'
 permalink: 09Fluid-Onblur/
 description: 配置失焦提示文案，结合 blur、focus 与 visibilitychange，在返回时恢复原文章标题。

@@ -152,6 +152,11 @@ fun_features:
     options:
       showSpinner: false
       trickleSpeed: 100
+post:
+  updated:
+    enable: true
+    relative: false
+    date_format: 'YYYY-MM-DD HH:mm'
 banner:
   parallax: true
 navbar:
@@ -159,3 +164,11 @@ navbar:
     enable: false
     px: 3
     alpha: 0.7
+  menu:
+    - { key: "home", link: "/", icon: "iconfont icon-home-fill" }
+    - { key: "archive", link: "/archives/", icon: "iconfont icon-archive-fill" }
+    - { key: "category", link: "/categories/", icon: "iconfont icon-category-fill" }
+    - { key: "tag", link: "/tags/", icon: "iconfont icon-tags-fill" }
+    - { key: "about", link: "/about/", icon: "iconfont icon-user-fill" }
+    - { key: "fluid-guide", name: "搭建教程", link: "/fluid-guide/", icon: "iconfont icon-book" }
+    - { key: "games", name: "小游戏", link: "/games/" }

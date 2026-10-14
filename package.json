@@ -7,7 +7,7 @@
     "clean": "hexo clean",
     "deploy": "hexo deploy",
     "server": "hexo server",
-    "test": "node --test test/effects.test.cjs"
+    "test": "node --test test/effects.test.cjs test/post-dates.test.cjs test/sudoku.test.cjs test/sudoku-game.test.cjs test/aim.test.cjs test/valotrainer.test.cjs test/valotrainer-i18n.test.cjs"
   },
   "hexo": {
     "version": "7.3.0"
