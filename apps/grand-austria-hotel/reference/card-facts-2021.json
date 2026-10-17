@@ -1,0 +1,2439 @@
+{
+  "edition": "2021 base game",
+  "sources": {
+    "official2021": "https://www.lookout-spiele.de/upload/de_gah_deluxe_crowdfunding.html_GAH_Regeln_EN_WEB.pdf",
+    "official2016CostIndexMirror": "https://cdn.1j1ju.com/medias/fa/5d/33-grand-austria-hotel-rulebook.pdf",
+    "onlineRules": "https://www.yucata.de/en/Rules/GrandAustria",
+    "publicReferenceApache2": "https://github.com/javipacheco/multi-language-bg-card-system/blob/main/games/search_cards_grand_hotel_austria.json",
+    "emperorTrackImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/rules/emperorTrack.gif",
+    "groupBonusImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/groupBonuses.png",
+    "promoStatusPublisher": "https://www.lookout-spiele.de/de/news.php?nn=2017-12-12+13%3A09%3A19"
+  },
+  "staff": [
+    {
+      "id": 1,
+      "name": "Breakfast Server",
+      "cost": 4,
+      "timing": "round",
+      "mechanics": {
+        "gain": {
+          "strudel": 1
+        }
+      }
+    },
+    {
+      "id": 2,
+      "name": "Waitress",
+      "cost": 6,
+      "timing": "round",
+      "mechanics": {
+        "gain": {
+          "cake": 1
+        }
+      }
+    },
+    {
+      "id": 3,
+      "name": "Barkeeper",
+      "cost": 4,
+      "timing": "round",
+      "mechanics": {
+        "gain": {
+          "wine": 1
+        }
+      }
+    },
+    {
+      "id": 4,
+      "name": "Sous-Chef",
+      "cost": 6,
+      "timing": "round",
+      "mechanics": {
+        "gain": {
+          "coffee": 1
+        }
+      }
+    },
+    {
+      "id": 5,
+      "name": "Groom",
+      "cost": 4,
+      "timing": "permanent",
+      "mechanics": {
+        "on": "guestAccommodated",
+        "guestColor": "red",
+        "money": 2
+      }
+    },
+    {
+      "id": 6,
+      "name": "Stableman",
+      "cost": 1,
+      "timing": "permanent",
+      "mechanics": {
+        "on": "guestAccommodated",
+        "guestColor": "blue",
+        "emperor": 1
+      }
+    },
+    {
+      "id": 7,
+      "name": "Masseuse",
+      "cost": 1,
+      "timing": "permanent",
+      "mechanics": {
+        "on": "guestAccommodated",
+        "guestColor": "yellow",
+        "money": 1
+      }
+    },
+    {
+      "id": 8,
+      "name": "Tour Guide",
+      "cost": 2,
+      "timing": "permanent",
+      "mechanics": {
+        "on": "guestAccommodated",
+        "guestColor": "green",
+        "vp": 2
+      }
+    },
+    {
+      "id": 9,
+      "name": "Butler",
+      "cost": 5,
+      "timing": "permanent",
+      "mechanics": {
+        "freeRoomColor": "blue"
+      }
+    },
+    {
+      "id": 10,
+      "name": "Chauffeur",
+      "cost": 5,
+      "timing": "permanent",
+      "mechanics": {
+        "freeRoomColor": "red"
+      }
+    },
+    {
+      "id": 11,
+      "name": "Florist",
+      "cost": 5,
+      "timing": "permanent",
+      "mechanics": {
+        "freeRoomColor": "yellow"
+      }
+    },
+    {
+      "id": 12,
+      "name": "Executive Housekeeper",
+      "cost": 2,
+      "timing": "permanent",
+      "mechanics": {
+        "on": "dieTaken",
+        "faces": [
+          3,
+          4
+        ],
+        "vp": 2
+      }
+    },
+    {
+      "id": 13,
+      "name": "Restaurant Manager",
+      "cost": 2,
+      "timing": "permanent",
+      "mechanics": {
+        "on": "dieTaken",
+        "faces": [
+          1,
+          2
+        ],
+        "power": 1
+      }
+    },
+    {
+      "id": 14,
+      "name": "Decorator",
+      "cost": 2,
+      "timing": "permanent",
+      "mechanics": {
+        "on": "dieTaken",
+        "faces": [
+          1,
+          2
+        ],
+        "prepareRooms": 1,
+        "discount": 0,
+        "beforeOrAfterMain": true,
+        "noAdditionalBetween": true
+      }
+    },
+    {
+      "id": 15,
+      "name": "Bootblack",
+      "cost": 4,
+      "timing": "permanent",
+      "mechanics": {
+        "on": "dieTaken",
+        "faces": [
+          4
+        ],
+        "bothMoneyAndEmperor": true
+      }
+    },
+    {
+      "id": 16,
+      "name": "Laundress",
+      "cost": 2,
+      "timing": "permanent",
+      "mechanics": {
+        "on": "dieTaken",
+        "faces": [
+          4
+        ],
+        "vp": 4
+      }
+    },
+    {
+      "id": 17,
+      "name": "Kitchen Hand",
+      "cost": 5,
+      "timing": "permanent",
+      "mechanics": {
+        "on": "dieTaken",
+        "faces": [
+          6
+        ],
+        "freeWildcard": true,
+        "power": 1
+      }
+    },
+    {
+      "id": 18,
+      "name": "Checker",
+      "cost": 2,
+      "timing": "permanent",
+      "mechanics": {
+        "on": "dieTaken",
+        "faces": [
+          5
+        ],
+        "discount": 2
+      }
+    },
+    {
+      "id": 19,
+      "name": "Interior Architect",
+      "cost": 3,
+      "timing": "permanent",
+      "mechanics": {
+        "on": "dieTaken",
+        "faces": [
+          3
+        ],
+        "vp": 5
+      }
+    },
+    {
+      "id": 20,
+      "name": "Detective",
+      "cost": 2,
+      "timing": "permanent",
+      "mechanics": {
+        "on": "dieTaken",
+        "faces": [
+          5
+        ],
+        "emperor": 2,
+        "beforeOrAfterMain": true,
+        "noAdditionalBetween": true
+      }
+    },
+    {
+      "id": 21,
+      "name": "Chef",
+      "cost": 3,
+      "timing": "immediate",
+      "mechanics": {
+        "gain": {
+          "strudel": 1,
+          "cake": 1,
+          "wine": 1,
+          "coffee": 1
+        }
+      }
+    },
+    {
+      "id": 22,
+      "name": "Staff Manager",
+      "cost": 3,
+      "timing": "permanent",
+      "mechanics": {
+        "on": "dieTaken",
+        "faces": [
+          3
+        ],
+        "hireStaff": 1,
+        "discount": 0,
+        "beforeOrAfterMain": true,
+        "noAdditionalBetween": true
+      }
+    },
+    {
+      "id": 23,
+      "name": "Custodian",
+      "cost": 5,
+      "timing": "permanent",
+      "mechanics": {
+        "on": "roomOccupied",
+        "money": 1
+      }
+    },
+    {
+      "id": 24,
+      "name": "Chief Waiter",
+      "cost": 1,
+      "timing": "permanent",
+      "mechanics": {
+        "serveCost": 0
+      }
+    },
+    {
+      "id": 25,
+      "name": "Delivery Boy",
+      "cost": 6,
+      "timing": "permanent",
+      "mechanics": {
+        "guestQueueCost": 0
+      }
+    },
+    {
+      "id": 26,
+      "name": "Conference Manager",
+      "cost": 5,
+      "timing": "permanent",
+      "mechanics": {
+        "emperorPenaltyAvoidCost": 1
+      }
+    },
+    {
+      "id": 27,
+      "name": "Booking Manager",
+      "cost": 4,
+      "timing": "endgame",
+      "mechanics": {
+        "score": "occupiedColor",
+        "color": "red",
+        "each": 3
+      }
+    },
+    {
+      "id": 28,
+      "name": "Concierge",
+      "cost": 4,
+      "timing": "endgame",
+      "mechanics": {
+        "score": "occupiedColor",
+        "color": "blue",
+        "each": 3
+      }
+    },
+    {
+      "id": 29,
+      "name": "Secretary",
+      "cost": 5,
+      "timing": "endgame",
+      "mechanics": {
+        "score": "copyOpponentEndgameStaff"
+      }
+    },
+    {
+      "id": 30,
+      "name": "Reception Clerk",
+      "cost": 4,
+      "timing": "endgame",
+      "mechanics": {
+        "score": "occupiedColor",
+        "color": "yellow",
+        "each": 3
+      }
+    },
+    {
+      "id": 31,
+      "name": "Chambermaid",
+      "cost": 4,
+      "timing": "endgame",
+      "mechanics": {
+        "score": "occupiedRooms",
+        "each": 1
+      }
+    },
+    {
+      "id": 32,
+      "name": "Assistant Manager",
+      "cost": 4,
+      "timing": "endgame",
+      "mechanics": {
+        "score": "playedStaff",
+        "each": 2
+      }
+    },
+    {
+      "id": 33,
+      "name": "Male Floor Housekeeper",
+      "cost": 5,
+      "timing": "permanent",
+      "mechanics": {
+        "on": "guestAccommodated",
+        "minOrderSize": 4,
+        "vp": 4
+      }
+    },
+    {
+      "id": 34,
+      "name": "Receptionist",
+      "cost": 5,
+      "timing": "endgame",
+      "mechanics": {
+        "score": "preparedOrOccupiedRooms",
+        "each": 1
+      }
+    },
+    {
+      "id": 35,
+      "name": "Page-boy",
+      "cost": 2,
+      "timing": "immediate",
+      "mechanics": {
+        "occupyRooms": 2
+      }
+    },
+    {
+      "id": 36,
+      "name": "Sommelier",
+      "cost": 2,
+      "timing": "immediate",
+      "mechanics": {
+        "gain": {
+          "wine": 4
+        }
+      }
+    },
+    {
+      "id": 37,
+      "name": "Room Service",
+      "cost": 3,
+      "timing": "endgame",
+      "mechanics": {
+        "score": "occupiedGroups",
+        "each": 2
+      }
+    },
+    {
+      "id": 38,
+      "name": "Porter",
+      "cost": 5,
+      "timing": "immediate",
+      "mechanics": {
+        "completeGuestOrder": 1
+      }
+    },
+    {
+      "id": 39,
+      "name": "Confectioner",
+      "cost": 3,
+      "timing": "immediate",
+      "mechanics": {
+        "gain": {
+          "cake": 4
+        }
+      }
+    },
+    {
+      "id": 40,
+      "name": "Marketing Director",
+      "cost": 2,
+      "timing": "endgame",
+      "mechanics": {
+        "score": "claimedObjectives",
+        "each": 5
+      }
+    },
+    {
+      "id": 41,
+      "name": "Operator",
+      "cost": 3,
+      "timing": "endgame",
+      "mechanics": {
+        "score": "emperorPosition",
+        "each": 2,
+        "cap": null
+      }
+    },
+    {
+      "id": 42,
+      "name": "Gardener",
+      "cost": 3,
+      "timing": "permanent",
+      "mechanics": {
+        "on": "emperorBonus",
+        "vp": 5
+      }
+    },
+    {
+      "id": 43,
+      "name": "Barista",
+      "cost": 3,
+      "timing": "immediate",
+      "mechanics": {
+        "gain": {
+          "coffee": 4
+        }
+      }
+    },
+    {
+      "id": 44,
+      "name": "Larder Cook",
+      "cost": 2,
+      "timing": "immediate",
+      "mechanics": {
+        "gain": {
+          "strudel": 4
+        }
+      }
+    },
+    {
+      "id": 45,
+      "name": "Pool Attendant",
+      "cost": 1,
+      "timing": "immediate",
+      "mechanics": {
+        "emperor": 3
+      }
+    },
+    {
+      "id": 46,
+      "name": "Female Floor Housekeeper",
+      "cost": 2,
+      "timing": "endgame",
+      "mechanics": {
+        "score": "occupiedFloors",
+        "each": 5
+      }
+    },
+    {
+      "id": 47,
+      "name": "Liftboy",
+      "cost": 4,
+      "timing": "endgame",
+      "mechanics": {
+        "score": "occupiedColumns",
+        "each": 5
+      }
+    },
+    {
+      "id": 48,
+      "name": "Hotel Manager",
+      "cost": 4,
+      "timing": "endgame",
+      "mechanics": {
+        "score": "minOccupiedColorCount",
+        "each": 4
+      }
+    }
+  ],
+  "notes": [
+    "Costs are verified from printed 2016 rulebook staff index, except Kitchen Hand updated to 5 per official 2021 text.",
+    "2021 Custodian triggers for any occupancy method, not only accommodated guests.",
+    "2021 Male Floor Housekeeper is not restricted to red guests; the public translation repository has an apparent extra word red, contradicted by official rules and Yucata.",
+    "All effects represented here are concise mechanical facts; artwork and full rulebook prose are not included.",
+    "Guest order resource counts verified against Yucata public card order tooltip data and card pictures; guest victory points visually read from all 56 public card GIFs.",
+    "Yellow guest ids49..62, blue63..76, red77..90, green91..104. All 56 card rewards are transcribed as mechanical facts, crosschecked with 2021 official appendix and public Apache-2.0 reference.",
+    "Sculptor49 has 0 printed VP; ignore the mismatching prose joke mentioning 3 VP in older rule descriptions.",
+    "Yucata gift card art remains older style for E. Gizia; implement the 2021 bonus action described in JSON, not a full extra turn.",
+    "The crowdfunding 2021 rulebook includes 58 guests; two extra promotional guests117/118 are not part of this standard56 deck.",
+    "All four alternative day hotels visually checked against public hotelBackA/B/C/D.gif, with connected groups matching printed wall partitions (10 groups per board).",
+    "All objective categories A/B/C use 15/10/5 VP for first/second/third claim; full politics1.gif, politics5.gif and politics9.gif were checked.",
+    "Blue occupancy size4 bonus is 15 VP, confirmed in groupBonuses.png.",
+    "The emperor track scoring table is not a linear position-minus-one function."
+  ],
+  "guests": [
+    {
+      "id": 49,
+      "name": "Sculptor",
+      "color": "yellow",
+      "order": {
+        "wine": 1
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "prepare",
+          "count": 1,
+          "free": true,
+          "maxFloor": 2
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestSculptor.gif"
+    },
+    {
+      "id": 50,
+      "name": "Musician",
+      "color": "yellow",
+      "order": {
+        "wine": 1
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "drawStaff",
+          "count": 1
+        },
+        {
+          "type": "prepare",
+          "count": 1,
+          "discount": 0
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestMusician.gif"
+    },
+    {
+      "id": 51,
+      "name": "Composer",
+      "color": "yellow",
+      "order": {
+        "wine": 1
+      },
+      "vp": 1,
+      "reward": [
+        {
+          "type": "gain",
+          "strudel": 1
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestComposer.gif"
+    },
+    {
+      "id": 52,
+      "name": "Tailor",
+      "color": "yellow",
+      "order": {
+        "wine": 1,
+        "coffee": 1
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "gain",
+          "strudel": 1,
+          "money": 2
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestTailor.gif"
+    },
+    {
+      "id": 53,
+      "name": "Flamenco Dancer",
+      "color": "yellow",
+      "order": {
+        "strudel": 1,
+        "wine": 1
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "gain",
+          "coffee": 1,
+          "emperor": 2
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestDancer.gif"
+    },
+    {
+      "id": 54,
+      "name": "Portrait Painter",
+      "color": "yellow",
+      "order": {
+        "wine": 2
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "gain",
+          "anyFood": 1,
+          "money": 2
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestPortraitPainter.gif"
+    },
+    {
+      "id": 55,
+      "name": "Photographer",
+      "color": "yellow",
+      "order": {
+        "wine": 3
+      },
+      "vp": 7,
+      "reward": [
+        {
+          "type": "drawStaff",
+          "count": 2
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestPhotographer.gif"
+    },
+    {
+      "id": 56,
+      "name": "Vocalist",
+      "color": "yellow",
+      "order": {
+        "strudel": 1,
+        "wine": 2
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "gain",
+          "cake": 1
+        },
+        {
+          "type": "hire",
+          "count": 1,
+          "discount": 3
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestVocalist.gif"
+    },
+    {
+      "id": 57,
+      "name": "Architect",
+      "color": "yellow",
+      "order": {
+        "wine": 2,
+        "coffee": 1
+      },
+      "vp": 1,
+      "reward": [
+        {
+          "type": "prepare",
+          "count": 2,
+          "discount": 1
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestArchitect.gif"
+    },
+    {
+      "id": 58,
+      "name": "Actress",
+      "color": "yellow",
+      "order": {
+        "wine": 3,
+        "coffee": 1
+      },
+      "vp": 7,
+      "reward": [
+        {
+          "type": "occupy",
+          "count": 1
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestActress.gif"
+    },
+    {
+      "id": 59,
+      "name": "Poet",
+      "color": "yellow",
+      "order": {
+        "strudel": 3,
+        "wine": 1
+      },
+      "vp": 5,
+      "reward": [
+        {
+          "type": "gain",
+          "cake": 1
+        },
+        {
+          "type": "hire",
+          "count": 1,
+          "discount": 2
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestPoet.gif"
+    },
+    {
+      "id": 60,
+      "name": "Jewelry Designer",
+      "color": "yellow",
+      "order": {
+        "cake": 2,
+        "wine": 2
+      },
+      "vp": 5,
+      "reward": [
+        {
+          "type": "gain",
+          "coffee": 1,
+          "money": 3
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestJewelryDesigner.gif"
+    },
+    {
+      "id": 61,
+      "name": "Painter",
+      "color": "yellow",
+      "order": {
+        "strudel": 1,
+        "wine": 3
+      },
+      "vp": 2,
+      "reward": [
+        {
+          "type": "prepare",
+          "count": 1,
+          "discount": 1
+        },
+        {
+          "type": "prepare",
+          "count": 1,
+          "discount": 0
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestPainter.gif"
+    },
+    {
+      "id": 62,
+      "name": "Opera Singer",
+      "color": "yellow",
+      "order": {
+        "strudel": 1,
+        "cake": 1,
+        "wine": 2
+      },
+      "vp": 4,
+      "reward": [
+        {
+          "type": "takeGuest",
+          "count": 1,
+          "free": true
+        },
+        {
+          "type": "gain",
+          "emperor": 3
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestOperaSinger.gif"
+    },
+    {
+      "id": 63,
+      "name": "Dame",
+      "color": "blue",
+      "order": {
+        "coffee": 1
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "takeGuest",
+          "count": 1,
+          "free": true
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestDame.gif"
+    },
+    {
+      "id": 64,
+      "name": "Duchess",
+      "color": "blue",
+      "order": {
+        "coffee": 1
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "hire",
+          "count": 1,
+          "discount": 1
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestDuchess.gif"
+    },
+    {
+      "id": 65,
+      "name": "Knight of the Empire",
+      "color": "blue",
+      "order": {
+        "coffee": 1
+      },
+      "vp": 3,
+      "reward": [],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestKnightOfTheEmpire.gif"
+    },
+    {
+      "id": 66,
+      "name": "Landgrave",
+      "color": "blue",
+      "order": {
+        "cake": 1,
+        "coffee": 1
+      },
+      "vp": 3,
+      "reward": [
+        {
+          "type": "hire",
+          "count": 1,
+          "discount": 1
+        },
+        {
+          "type": "prepare",
+          "count": 1,
+          "discount": 0
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestLandgrave.gif"
+    },
+    {
+      "id": 67,
+      "name": "Sovereign",
+      "color": "blue",
+      "order": {
+        "coffee": 2
+      },
+      "vp": 2,
+      "reward": [
+        {
+          "type": "drawStaff",
+          "count": 2
+        },
+        {
+          "type": "gain",
+          "emperor": 2
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestSovereign.gif"
+    },
+    {
+      "id": 68,
+      "name": "Princess",
+      "color": "blue",
+      "order": {
+        "strudel": 2,
+        "coffee": 1
+      },
+      "vp": 4,
+      "reward": [
+        {
+          "type": "gain",
+          "emperor": 3
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestPrincess.gif"
+    },
+    {
+      "id": 69,
+      "name": "Countess",
+      "color": "blue",
+      "order": {
+        "cake": 2,
+        "coffee": 1
+      },
+      "vp": 7,
+      "reward": [
+        {
+          "type": "gain",
+          "money": 3
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestCountess.gif"
+    },
+    {
+      "id": 70,
+      "name": "Elector",
+      "color": "blue",
+      "order": {
+        "strudel": 1,
+        "wine": 1,
+        "coffee": 1
+      },
+      "vp": 1,
+      "reward": [
+        {
+          "type": "hire",
+          "count": 1,
+          "discount": 1
+        },
+        {
+          "type": "gain",
+          "emperor": 3
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestElector.gif"
+    },
+    {
+      "id": 71,
+      "name": "Baron",
+      "color": "blue",
+      "order": {
+        "strudel": 1,
+        "coffee": 2
+      },
+      "vp": 4,
+      "reward": [
+        {
+          "type": "prepare",
+          "count": 1,
+          "free": true
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestBaron.gif"
+    },
+    {
+      "id": 72,
+      "name": "Prince",
+      "color": "blue",
+      "order": {
+        "strudel": 1,
+        "cake": 1,
+        "coffee": 1
+      },
+      "vp": 7,
+      "reward": [
+        {
+          "type": "occupy",
+          "count": 1
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestPrince.gif"
+    },
+    {
+      "id": 73,
+      "name": "Count",
+      "color": "blue",
+      "order": {
+        "wine": 1,
+        "coffee": 2
+      },
+      "vp": 4,
+      "reward": [
+        {
+          "type": "hire",
+          "count": 2,
+          "discount": 1
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestCount.gif"
+    },
+    {
+      "id": 74,
+      "name": "Earl",
+      "color": "blue",
+      "order": {
+        "cake": 1,
+        "coffee": 2
+      },
+      "vp": 10,
+      "reward": [
+        {
+          "type": "gain",
+          "money": 1
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestEarl.gif"
+    },
+    {
+      "id": 75,
+      "name": "Baroness",
+      "color": "blue",
+      "order": {
+        "wine": 2,
+        "coffee": 2
+      },
+      "vp": 5,
+      "reward": [
+        {
+          "type": "drawHire",
+          "draw": 3,
+          "choose": 1,
+          "discount": 3,
+          "returnOthersToBottom": true
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestBaroness.gif"
+    },
+    {
+      "id": 76,
+      "name": "Duke",
+      "color": "blue",
+      "order": {
+        "strudel": 2,
+        "coffee": 2
+      },
+      "vp": 4,
+      "reward": [
+        {
+          "type": "drawHire",
+          "draw": 3,
+          "choose": 1,
+          "free": true,
+          "returnOthersToBottom": true
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestDuke.gif"
+    },
+    {
+      "id": 77,
+      "name": "Apothecary",
+      "color": "red",
+      "order": {
+        "cake": 1
+      },
+      "vp": 1,
+      "reward": [
+        {
+          "type": "gain",
+          "money": 1
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestApothecary.gif"
+    },
+    {
+      "id": 78,
+      "name": "Post Councillor",
+      "color": "red",
+      "order": {
+        "cake": 1
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "takeGuest",
+          "count": 1,
+          "free": true
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestPostCouncillor.gif"
+    },
+    {
+      "id": 79,
+      "name": "Privy Councillor",
+      "color": "red",
+      "order": {
+        "cake": 1
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "gain",
+          "money": 1,
+          "emperor": 1
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestPrivyCouncillor.gif"
+    },
+    {
+      "id": 80,
+      "name": "Professor Emeritus",
+      "color": "red",
+      "order": {
+        "cake": 1,
+        "wine": 1
+      },
+      "vp": 4,
+      "reward": [
+        {
+          "type": "takeGuest",
+          "count": 1,
+          "free": true
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestProfessorEmeritus.gif"
+    },
+    {
+      "id": 81,
+      "name": "General",
+      "color": "red",
+      "order": {
+        "cake": 2
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "gain",
+          "wine": 1,
+          "money": 3
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestGeneral.gif"
+    },
+    {
+      "id": 82,
+      "name": "Senior Councillor",
+      "color": "red",
+      "order": {
+        "cake": 1,
+        "wine": 1,
+        "coffee": 1
+      },
+      "vp": 7,
+      "reward": [
+        {
+          "type": "occupy",
+          "count": 1
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestSeniorCouncillor.gif"
+    },
+    {
+      "id": 83,
+      "name": "Councillor Of Commerce",
+      "color": "red",
+      "order": {
+        "strudel": 1,
+        "cake": 1,
+        "wine": 1
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "gain",
+          "money": 5
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestCouncillorOfCommerce.gif"
+    },
+    {
+      "id": 84,
+      "name": "Court Councillor",
+      "color": "red",
+      "order": {
+        "cake": 2,
+        "wine": 1
+      },
+      "vp": 2,
+      "reward": [
+        {
+          "type": "gain",
+          "money": 3
+        },
+        {
+          "type": "takeGuest",
+          "count": 1,
+          "free": true
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestCourtCounsellor.gif"
+    },
+    {
+      "id": 85,
+      "name": "Major",
+      "color": "red",
+      "order": {
+        "strudel": 2,
+        "cake": 1
+      },
+      "vp": 3,
+      "reward": [
+        {
+          "type": "gain",
+          "money": 3
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestMajor.gif"
+    },
+    {
+      "id": 86,
+      "name": "Veterinary Councillor",
+      "color": "red",
+      "order": {
+        "cake": 1,
+        "wine": 2
+      },
+      "vp": 3,
+      "reward": [
+        {
+          "type": "hire",
+          "count": 1,
+          "discount": 3
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestVeterinaryCouncillor.gif"
+    },
+    {
+      "id": 87,
+      "name": "Medicinal Councillor",
+      "color": "red",
+      "order": {
+        "cake": 2,
+        "coffee": 2
+      },
+      "vp": 3,
+      "reward": [
+        {
+          "type": "gain",
+          "money": 3
+        },
+        {
+          "type": "takeGuest",
+          "count": 2,
+          "free": true,
+          "refillBetween": true
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestMedicinalCouncillor.gif"
+    },
+    {
+      "id": 88,
+      "name": "Procurator",
+      "color": "red",
+      "order": {
+        "cake": 1,
+        "wine": 3
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "prepare",
+          "count": 2,
+          "free": true
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestProcurator.gif"
+    },
+    {
+      "id": 89,
+      "name": "Lord High Commissioner",
+      "color": "red",
+      "order": {
+        "strudel": 2,
+        "cake": 1,
+        "wine": 1
+      },
+      "vp": 5,
+      "reward": [
+        {
+          "type": "gain",
+          "money": 4
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestLordHighCommissioner.gif"
+    },
+    {
+      "id": 90,
+      "name": "Senior Legal Secretary",
+      "color": "red",
+      "order": {
+        "strudel": 1,
+        "cake": 3
+      },
+      "vp": 7,
+      "reward": [
+        {
+          "type": "gain",
+          "wine": 1,
+          "money": 3
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestSeniorLegalSecretary.gif"
+    },
+    {
+      "id": 91,
+      "name": "Tezcatlipoca",
+      "color": "green",
+      "order": {
+        "strudel": 1
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "drawStaff",
+          "count": 3
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestTezcatlipoca.gif"
+    },
+    {
+      "id": 92,
+      "name": "Capt. Goldhaken",
+      "color": "green",
+      "order": {
+        "strudel": 1
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "gain",
+          "money": 1
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestCaptGoldhaken.gif"
+    },
+    {
+      "id": 93,
+      "name": "Mr Horsa",
+      "color": "green",
+      "order": {
+        "strudel": 1
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "gain",
+          "emperor": 1
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestMrHorsa.gif"
+    },
+    {
+      "id": 94,
+      "name": "M. Ingalls",
+      "color": "green",
+      "order": {
+        "strudel": 2
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "hire",
+          "count": 1,
+          "discount": 1
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestMichaelIngalls.gif"
+    },
+    {
+      "id": 95,
+      "name": "Mr Boydell",
+      "color": "green",
+      "order": {
+        "strudel": 1,
+        "cake": 1
+      },
+      "vp": 2,
+      "reward": [
+        {
+          "type": "gain",
+          "emperor": 2
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestMrBoydell.gif"
+    },
+    {
+      "id": 96,
+      "name": "Mr Oundo",
+      "color": "green",
+      "order": {
+        "strudel": 1,
+        "coffee": 1
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "hire",
+          "count": 1,
+          "discount": 3
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestMrOundo.gif"
+    },
+    {
+      "id": 97,
+      "name": "E. Gizia",
+      "color": "green",
+      "order": {
+        "strudel": 2,
+        "wine": 1
+      },
+      "vp": 4,
+      "reward": [
+        {
+          "type": "bonusDieAction",
+          "mustHaveDie": true,
+          "removeDie": false,
+          "boostAllowed": false,
+          "triggerDieStaff": false,
+          "fullExtraTurn": false
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestEGizia.gif"
+    },
+    {
+      "id": 98,
+      "name": "M. Polo",
+      "color": "green",
+      "order": {
+        "strudel": 3
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "gain",
+          "money": 4
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestMPolo.gif"
+    },
+    {
+      "id": 99,
+      "name": "Cramersopholus",
+      "color": "green",
+      "order": {
+        "strudel": 1,
+        "cake": 2
+      },
+      "vp": 5,
+      "reward": [
+        {
+          "type": "drawStaff",
+          "count": 1
+        },
+        {
+          "type": "gain",
+          "emperor": 2
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestCramersopholus.gif"
+    },
+    {
+      "id": 100,
+      "name": "Farmer Franz",
+      "color": "green",
+      "order": {
+        "strudel": 1,
+        "coffee": 3
+      },
+      "vp": 4,
+      "reward": [
+        {
+          "type": "gain",
+          "emperor": 3
+        },
+        {
+          "type": "occupy",
+          "count": 1
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestFarmerFranz.gif"
+    },
+    {
+      "id": 101,
+      "name": "Brother Uwe",
+      "color": "green",
+      "order": {
+        "strudel": 3,
+        "coffee": 1
+      },
+      "vp": 3,
+      "reward": [
+        {
+          "type": "gain",
+          "emperor": 3
+        },
+        {
+          "type": "takeGuest",
+          "count": 1,
+          "free": true
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestBrotherUwe.gif"
+    },
+    {
+      "id": 102,
+      "name": "Conductor",
+      "color": "green",
+      "order": {
+        "strudel": 1,
+        "coffee": 1
+      },
+      "vp": 0,
+      "reward": [
+        {
+          "type": "gain",
+          "emperor": 1
+        },
+        {
+          "type": "occupy",
+          "count": 1
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestConductor.gif"
+    },
+    {
+      "id": 103,
+      "name": "Durgoing",
+      "color": "green",
+      "order": {
+        "strudel": 1,
+        "wine": 1
+      },
+      "vp": 4,
+      "reward": [
+        {
+          "type": "drawStaff",
+          "count": 2
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestDurgoing.gif"
+    },
+    {
+      "id": 104,
+      "name": "Mac Leod",
+      "color": "green",
+      "order": {
+        "strudel": 2,
+        "cake": 2
+      },
+      "vp": 2,
+      "reward": [
+        {
+          "type": "hire",
+          "count": 1,
+          "free": true
+        }
+      ],
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/guestMacLeod.gif"
+    }
+  ],
+  "standardHotel": {
+    "coordinates": "floor 1 is bottom; columns 1..5 left to right",
+    "colorsBottomToTop": [
+      "BYRRB",
+      "YYRRY",
+      "BRBYY",
+      "BRBRB"
+    ],
+    "groups": [
+      [
+        [
+          1,
+          1
+        ]
+      ],
+      [
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      [
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ],
+      [
+        [
+          1,
+          5
+        ]
+      ],
+      [
+        [
+          2,
+          5
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          3,
+          5
+        ]
+      ],
+      [
+        [
+          3,
+          1
+        ],
+        [
+          4,
+          1
+        ]
+      ],
+      [
+        [
+          3,
+          2
+        ],
+        [
+          4,
+          2
+        ]
+      ],
+      [
+        [
+          3,
+          3
+        ],
+        [
+          4,
+          3
+        ]
+      ],
+      [
+        [
+          4,
+          4
+        ]
+      ],
+      [
+        [
+          4,
+          5
+        ]
+      ]
+    ],
+    "floorCosts": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "preparationVP": {
+      "3,4": 1,
+      "3,5": 2,
+      "4,3": 3,
+      "4,4": 4,
+      "4,5": 5
+    },
+    "occupancyGroupBonuses": {
+      "blue": [
+        2,
+        5,
+        9,
+        15
+      ],
+      "red": [
+        1,
+        3,
+        6,
+        10
+      ],
+      "yellow": [
+        1,
+        3,
+        6,
+        10
+      ]
+    }
+  },
+  "emperorTrackVP": [
+    0,
+    1,
+    2,
+    3,
+    3,
+    4,
+    4,
+    5,
+    5,
+    6,
+    6,
+    7,
+    8,
+    9
+  ],
+  "guestQueueCostLeftToRight": [
+    3,
+    2,
+    1,
+    0,
+    0
+  ],
+  "alternateHotels": [
+    {
+      "id": "A",
+      "colorsBottomToTop": [
+        "RYRRY",
+        "BYBBB",
+        "BYRRY",
+        "BYBBR"
+      ],
+      "groups": [
+        [
+          [
+            1,
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            4,
+            2
+          ]
+        ],
+        [
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            4
+          ]
+        ],
+        [
+          [
+            1,
+            5
+          ]
+        ],
+        [
+          [
+            2,
+            1
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            4,
+            1
+          ]
+        ],
+        [
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            5
+          ]
+        ],
+        [
+          [
+            3,
+            3
+          ],
+          [
+            3,
+            4
+          ]
+        ],
+        [
+          [
+            3,
+            5
+          ]
+        ],
+        [
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            4
+          ]
+        ],
+        [
+          [
+            4,
+            5
+          ]
+        ]
+      ],
+      "floorCosts": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "preparationVP": {
+        "3,4": 1,
+        "3,5": 1,
+        "4,3": 2,
+        "4,4": 2,
+        "4,5": 2
+      },
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/hotelBackA.gif"
+    },
+    {
+      "id": "B",
+      "colorsBottomToTop": [
+        "BYRRR",
+        "BYRBY",
+        "BRBRY",
+        "YBBRB"
+      ],
+      "groups": [
+        [
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            3,
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        [
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            2,
+            3
+          ]
+        ],
+        [
+          [
+            2,
+            4
+          ]
+        ],
+        [
+          [
+            2,
+            5
+          ],
+          [
+            3,
+            5
+          ]
+        ],
+        [
+          [
+            3,
+            2
+          ]
+        ],
+        [
+          [
+            3,
+            3
+          ],
+          [
+            4,
+            2
+          ],
+          [
+            4,
+            3
+          ]
+        ],
+        [
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            4
+          ]
+        ],
+        [
+          [
+            4,
+            1
+          ]
+        ],
+        [
+          [
+            4,
+            5
+          ]
+        ]
+      ],
+      "floorCosts": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "preparationVP": {
+        "3,4": 1,
+        "3,5": 1,
+        "4,3": 2,
+        "4,4": 2,
+        "4,5": 2
+      },
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/hotelBackB.gif"
+    },
+    {
+      "id": "C",
+      "colorsBottomToTop": [
+        "RBRYR",
+        "RBYYY",
+        "RYRBB",
+        "BYRBY"
+      ],
+      "groups": [
+        [
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            3,
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        [
+          [
+            1,
+            3
+          ]
+        ],
+        [
+          [
+            1,
+            4
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            5
+          ]
+        ],
+        [
+          [
+            1,
+            5
+          ]
+        ],
+        [
+          [
+            3,
+            2
+          ],
+          [
+            4,
+            2
+          ]
+        ],
+        [
+          [
+            3,
+            3
+          ],
+          [
+            4,
+            3
+          ]
+        ],
+        [
+          [
+            3,
+            4
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            4,
+            4
+          ]
+        ],
+        [
+          [
+            4,
+            1
+          ]
+        ],
+        [
+          [
+            4,
+            5
+          ]
+        ]
+      ],
+      "floorCosts": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "preparationVP": {
+        "3,4": 1,
+        "3,5": 1,
+        "4,3": 2,
+        "4,4": 2,
+        "4,5": 2
+      },
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/hotelBackC.gif"
+    },
+    {
+      "id": "D",
+      "colorsBottomToTop": [
+        "RBRRB",
+        "YBYYY",
+        "YBBRB",
+        "RRRYB"
+      ],
+      "groups": [
+        [
+          [
+            1,
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        [
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            4
+          ]
+        ],
+        [
+          [
+            1,
+            5
+          ]
+        ],
+        [
+          [
+            2,
+            1
+          ],
+          [
+            3,
+            1
+          ]
+        ],
+        [
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            5
+          ]
+        ],
+        [
+          [
+            3,
+            4
+          ]
+        ],
+        [
+          [
+            3,
+            5
+          ],
+          [
+            4,
+            5
+          ]
+        ],
+        [
+          [
+            4,
+            1
+          ],
+          [
+            4,
+            2
+          ],
+          [
+            4,
+            3
+          ]
+        ],
+        [
+          [
+            4,
+            4
+          ]
+        ]
+      ],
+      "floorCosts": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "preparationVP": {
+        "3,4": 1,
+        "3,5": 1,
+        "4,3": 2,
+        "4,4": 2,
+        "4,5": 2
+      },
+      "sourceImage": "https://www.yucata.de/game-plugins/grandaustria/1.0.4/images/hotelBackD.gif"
+    }
+  ],
+  "objectives": [
+    {
+      "id": 105,
+      "category": "A",
+      "categoryIndex": 1,
+      "vpByClaimOrder": [
+        15,
+        10,
+        5
+      ],
+      "requirement": {
+        "money": 20
+      }
+    },
+    {
+      "id": 106,
+      "category": "A",
+      "categoryIndex": 2,
+      "vpByClaimOrder": [
+        15,
+        10,
+        5
+      ],
+      "requirement": {
+        "emperor": 10
+      }
+    },
+    {
+      "id": 107,
+      "category": "A",
+      "categoryIndex": 3,
+      "vpByClaimOrder": [
+        15,
+        10,
+        5
+      ],
+      "requirement": {
+        "playedStaff": 6
+      }
+    },
+    {
+      "id": 108,
+      "category": "A",
+      "categoryIndex": 4,
+      "vpByClaimOrder": [
+        15,
+        10,
+        5
+      ],
+      "requirement": {
+        "preparedOrOccupiedRooms": 12
+      }
+    },
+    {
+      "id": 109,
+      "category": "B",
+      "categoryIndex": 1,
+      "vpByClaimOrder": [
+        15,
+        10,
+        5
+      ],
+      "requirement": {
+        "occupiedFloors": 2
+      }
+    },
+    {
+      "id": 110,
+      "category": "B",
+      "categoryIndex": 2,
+      "vpByClaimOrder": [
+        15,
+        10,
+        5
+      ],
+      "requirement": {
+        "occupiedColumns": 2
+      }
+    },
+    {
+      "id": 111,
+      "category": "B",
+      "categoryIndex": 3,
+      "vpByClaimOrder": [
+        15,
+        10,
+        5
+      ],
+      "requirement": {
+        "occupiedGroups": 6
+      }
+    },
+    {
+      "id": 112,
+      "category": "B",
+      "categoryIndex": 4,
+      "vpByClaimOrder": [
+        15,
+        10,
+        5
+      ],
+      "requirement": {
+        "allRoomsOfOneColor": true
+      }
+    },
+    {
+      "id": 113,
+      "category": "C",
+      "categoryIndex": 1,
+      "vpByClaimOrder": [
+        15,
+        10,
+        5
+      ],
+      "requirement": {
+        "occupiedColors": {
+          "red": 3,
+          "yellow": 3,
+          "blue": 3
+        }
+      }
+    },
+    {
+      "id": 114,
+      "category": "C",
+      "categoryIndex": 2,
+      "vpByClaimOrder": [
+        15,
+        10,
+        5
+      ],
+      "requirement": {
+        "occupiedColors": {
+          "red": 4,
+          "yellow": 3
+        }
+      }
+    },
+    {
+      "id": 115,
+      "category": "C",
+      "categoryIndex": 3,
+      "vpByClaimOrder": [
+        15,
+        10,
+        5
+      ],
+      "requirement": {
+        "occupiedColors": {
+          "yellow": 4,
+          "blue": 3
+        }
+      }
+    },
+    {
+      "id": 116,
+      "category": "C",
+      "categoryIndex": 4,
+      "vpByClaimOrder": [
+        15,
+        10,
+        5
+      ],
+      "requirement": {
+        "occupiedColors": {
+          "blue": 4,
+          "red": 3
+        }
+      }
+    }
+  ]
+}

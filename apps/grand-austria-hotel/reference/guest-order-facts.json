@@ -1,0 +1,428 @@
+[
+  {
+    "yucataName": "Actress",
+    "order": [
+      "wine",
+      "wine",
+      "wine",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "Apothecary",
+    "order": [
+      "cake"
+    ]
+  },
+  {
+    "yucataName": "Architect",
+    "order": [
+      "wine",
+      "wine",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "Baron",
+    "order": [
+      "strudel",
+      "coffee",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "Baroness",
+    "order": [
+      "wine",
+      "wine",
+      "coffee",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "BrotherUwe",
+    "order": [
+      "strudel",
+      "strudel",
+      "strudel",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "CaptGoldhaken",
+    "order": [
+      "strudel"
+    ]
+  },
+  {
+    "yucataName": "Composer",
+    "order": [
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "Conductor",
+    "order": [
+      "strudel",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "CouncillorOfCommerce",
+    "order": [
+      "strudel",
+      "cake",
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "Count",
+    "order": [
+      "wine",
+      "coffee",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "Countess",
+    "order": [
+      "cake",
+      "cake",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "CourtCounsellor",
+    "order": [
+      "cake",
+      "cake",
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "Cramersopholus",
+    "order": [
+      "strudel",
+      "cake",
+      "cake"
+    ]
+  },
+  {
+    "yucataName": "Dame",
+    "order": [
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "Dancer",
+    "order": [
+      "strudel",
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "Duchess",
+    "order": [
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "Duke",
+    "order": [
+      "strudel",
+      "strudel",
+      "coffee",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "Durgoing",
+    "order": [
+      "strudel",
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "EGizia",
+    "order": [
+      "strudel",
+      "strudel",
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "Earl",
+    "order": [
+      "cake",
+      "coffee",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "Elector",
+    "order": [
+      "strudel",
+      "wine",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "FarmerFranz",
+    "order": [
+      "strudel",
+      "coffee",
+      "coffee",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "General",
+    "order": [
+      "cake",
+      "cake"
+    ]
+  },
+  {
+    "yucataName": "JewelryDesigner",
+    "order": [
+      "cake",
+      "cake",
+      "wine",
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "KnightOfTheEmpire",
+    "order": [
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "Landgrave",
+    "order": [
+      "cake",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "LordHighCommissioner",
+    "order": [
+      "strudel",
+      "strudel",
+      "cake",
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "MPolo",
+    "order": [
+      "strudel",
+      "strudel",
+      "strudel"
+    ]
+  },
+  {
+    "yucataName": "MacLeod",
+    "order": [
+      "strudel",
+      "strudel",
+      "cake",
+      "cake"
+    ]
+  },
+  {
+    "yucataName": "Major",
+    "order": [
+      "strudel",
+      "strudel",
+      "cake"
+    ]
+  },
+  {
+    "yucataName": "MedicinalCouncillor",
+    "order": [
+      "cake",
+      "cake",
+      "coffee",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "MichaelIngalls",
+    "order": [
+      "strudel",
+      "strudel"
+    ]
+  },
+  {
+    "yucataName": "MrBoydell",
+    "order": [
+      "strudel",
+      "cake"
+    ]
+  },
+  {
+    "yucataName": "MrHorsa",
+    "order": [
+      "strudel"
+    ]
+  },
+  {
+    "yucataName": "MrOundo",
+    "order": [
+      "strudel",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "Musician",
+    "order": [
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "OperaSinger",
+    "order": [
+      "strudel",
+      "cake",
+      "wine",
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "Painter",
+    "order": [
+      "strudel",
+      "wine",
+      "wine",
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "Photographer",
+    "order": [
+      "wine",
+      "wine",
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "Poet",
+    "order": [
+      "strudel",
+      "strudel",
+      "strudel",
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "PortraitPainter",
+    "order": [
+      "wine",
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "PostCouncillor",
+    "order": [
+      "cake"
+    ]
+  },
+  {
+    "yucataName": "Prince",
+    "order": [
+      "strudel",
+      "cake",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "Princess",
+    "order": [
+      "strudel",
+      "strudel",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "PrivyCouncillor",
+    "order": [
+      "cake"
+    ]
+  },
+  {
+    "yucataName": "Procurator",
+    "order": [
+      "cake",
+      "wine",
+      "wine",
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "ProfessorEmeritus",
+    "order": [
+      "cake",
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "Sculptor",
+    "order": [
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "SeniorCouncillor",
+    "order": [
+      "cake",
+      "wine",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "SeniorLegalSecretary",
+    "order": [
+      "strudel",
+      "cake",
+      "cake",
+      "cake"
+    ]
+  },
+  {
+    "yucataName": "Sovereign",
+    "order": [
+      "coffee",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "Tailor",
+    "order": [
+      "wine",
+      "coffee"
+    ]
+  },
+  {
+    "yucataName": "Tezcatlipoca",
+    "order": [
+      "strudel"
+    ]
+  },
+  {
+    "yucataName": "VeterinaryCouncillor",
+    "order": [
+      "cake",
+      "wine",
+      "wine"
+    ]
+  },
+  {
+    "yucataName": "Vocalist",
+    "order": [
+      "strudel",
+      "wine",
+      "wine"
+    ]
+  }
+]

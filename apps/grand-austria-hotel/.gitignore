@@ -1,0 +1,14 @@
+node_modules/
+!public/
+!public/**
+dist/
+.private/
+.env
+.env.*
+!.env.example
+reference/*.pdf
+reference/*.html
+reference/*.png
+reference/*.gif
+reference/card-images/
+test-output/
