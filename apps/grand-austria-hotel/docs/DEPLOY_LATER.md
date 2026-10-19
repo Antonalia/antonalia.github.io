@@ -1,6 +1,8 @@
 # 公网联机部署与GitHub发布
 
-用户已授权将源码和页面上传GitHub。完整项目位于博客仓库`apps/grand-austria-hotel/`，下列公网联机配置仍待执行；当前没有创建云数据库或部署API。GitHub Pages未设置API来源时展示“公网联机尚未启用”，不会开放无密码对局。
+用户已授权发布GitHub页面并新建游戏专用Vercel与Neon。2026-10-19已部署API `https://grand-austria-hotel.vercel.app`，使用独立Neon项目`gentle-band-89164349`；原Waline项目`icy-lab-00585924`保持独立。受限LOGIN角色`hotel_game_login`只继承`hotel_player_api`，不具备Neon管理员、建库或建角色权限。实际公网HTTP验收记录见`cloud-acceptance.json`。
+
+公网访问密码为新生成的独立强密码，本机`.private/公网游戏访问.txt`保存可分享给好友的入口与密码；本地博客密码和原存档没有迁移。`.private/`和环境文件明确排除在Git导出、静态构建及Vercel上传之外。以下步骤用于以后维护或重新部署。
 
 ## 后端：专用Vercel与Neon
 
@@ -16,7 +18,7 @@
 
 4. `/api/health` 应返回configured=true；未配置时API拒绝服务。公网没有初始密码设置接口，密码由部署环境配置。
 5. 确认平台级登录/建房/操作限流、用量提醒和可用的预算动作。应用内存限流不能覆盖多个函数实例。Vercel预算动作可能涉及同团队所有项目，配置前核对对Waline的影响。
-6. 使用实际iPad Safari和两台独立设备验证来源、登录、重连、隐藏手牌、并发与七轮结束。当前未连接真实Neon项目，不能把本地通过等同于公网数据库已验证。
+6. 已通过真实公网API与Neon验证独立玩家登录、建房/加入、完整开局、动作同步、刷新恢复、隐藏手牌、请求去重与并发冲突。实体iPad Safari、两台物理设备及完整七轮公网长局仍需实际试玩，不能用本机浏览器模拟替代。
 
 会话和过期对局可以定期维护：
 

@@ -12,6 +12,7 @@ export function initDisplayMode(doc=document){
     const active=Boolean(native()||immersive);
     doc.body.classList.toggle('display-active',active);
     button.setAttribute('aria-pressed',String(active));
+    button.setAttribute('aria-label',active?'退出全屏':'全屏');
     label.textContent=active?'退出全屏':'全屏';
     button.title=active?'退出全屏或沉浸模式（Esc）':'全屏游玩';
   }

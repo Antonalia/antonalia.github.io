@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-19T01:29:01.093Z",
+  "origin": "https://grand-austria-hotel.vercel.app",
+  "neonProject": "gentle-band-89164349",
+  "checks": [
+    "public health configured; setup disabled",
+    "authentication and CORS rejection",
+    "two independent players create and join; outsiders rejected",
+    "concurrent updates commit once",
+    "opening setup and hidden hand filtering",
+    "action sync, refresh persistence, replay deduplication and version conflict",
+    "private deployment files unavailable"
+  ]
+}

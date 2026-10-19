@@ -1,5 +1,5 @@
 import {icon,dieIcon} from './visuals.mjs';
-import {renderTable} from './table-view.mjs';
+import {createTabletop} from './table-view.mjs';
 import {renderArrival,previewEntry,renderOnlinePending} from './arrival-view.mjs';
 import {initDisplayMode} from './display-mode.mjs';
 initDisplayMode();
@@ -13,10 +13,12 @@ const profile = new URLSearchParams(location.search).get('profile') || 'main';
 const storageKey = `gah.session.${profile}`;
 let auth = null, room = null, busy = false, health = null, pollTimer, failures = 0, lastUpdated = 0, preview=null, previewModule;
 const selections = new Map();
+const tabletop=createTabletop(root,{onAction:a=>task(()=>action(a)),onExit:()=>task(async()=>{if(preview)await closePreview();else await renderHome();}),onFlash:flash});
+notice.addEventListener('click',()=>flash(''));
 try { auth = JSON.parse(localStorage.getItem(storageKey)); } catch { }
 const requestId = () => crypto.randomUUID ? crypto.randomUUID() : Array.from(crypto.getRandomValues(new Uint8Array(16)),n=>n.toString(16).padStart(2,'0')).join('');
 const disabled = value => value ? ' disabled' : '';
-function flash(message) { notice.textContent = message; notice.hidden = !message; }
+function flash(message) { notice.textContent = String(message??'').replaceAll('皇帝','皇冠'); notice.hidden = !message; }
 function status(message, offline = false) { connection.textContent = message; connection.classList.toggle('offline',offline); }
 async function api(path, { method='GET', body, anonymous=false }={}) {
   const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 12000);
@@ -33,7 +35,7 @@ function goodChips(values, total) { return `<div class="goods">${R.map(r => {con
 function effectText(e) {
   if(e.kind==='money')return `获得${e.amount}克朗`;
   if(e.kind==='vp')return `获得${e.amount}分`;
-  if(e.kind==='emperor')return `皇帝前进${e.amount}格`;
+  if(e.kind==='emperor')return `皇冠前进${e.amount}格`;
   if(e.kind==='draw')return `抽${e.amount}张员工`;
   if(e.kind==='staffVp')return `每位已雇员工${e.amount}分`;
   if(e.kind==='goods')return e.counts ? R.filter(r=>e.counts[r]).map(r=>`${N[r]}${e.counts[r]}`).join('、') : `获得最多${e.amount}件${e.pair ? e.pair.map(r=>N[r]).join('/'):'任意食饮'}${e.balanced?'（前者不少于后者）':''}`;
@@ -43,22 +45,22 @@ function effectText(e) {
   if(e.kind==='complete')return '免费完成一位客人的订单';
   if(e.kind==='attract')return '免费迎接一位市场客人';
   if(e.kind==='die')return '执行一次额外骰子动作（不取骰、不增强、不触发取骰员工）';
-  if(e.kind==='conference')return '可付1克朗免去本次皇帝处罚';
+  if(e.kind==='conference')return '可付1克朗免去本次皇冠处罚';
   if(e.kind==='penalty')return {money:`支付${e.amount}克朗，否则扣${e.fallback}分`,discardHand:`将${e.amount}张手牌放回牌库底，否则扣${e.fallback}分`,removePrepared:`从最高可能楼层移除${e.amount}间空房，否则扣${e.fallback}分`,clearKitchen:'清空厨房',clearAllGoods:'清空厨房与客人桌上的食饮',vp:`扣${e.amount}分`,staffVp:`每位已雇员工扣${e.amount}分`,removeOccupied:'最高两个有入住房的楼层各移除一间入住房',removeEndStaff:`移除一位终局员工，否则扣${e.fallback}分`}[e.penalty];
   return '';
 }
 function staffText(c) {
   const m=c.mechanics;
   if(c.effects?.length)return c.effects.map(effectText).join('；');
-  if(m.on==='guestAccommodated')return `${m.guestColor?N[m.guestColor]+'色':'任意'}客人入住${m.minOrderSize?`且订单至少${m.minOrderSize}件`:''}：${m.money?`+${m.money}克朗`:m.emperor?`皇帝+${m.emperor}格`:`+${m.vp}分`}`;
+  if(m.on==='guestAccommodated')return `${m.guestColor?N[m.guestColor]+'色':'任意'}客人入住${m.minOrderSize?`且订单至少${m.minOrderSize}件`:''}：${m.money?`+${m.money}克朗`:m.emperor?`皇冠+${m.emperor}格`:`+${m.vp}分`}`;
   if(m.freeRoomColor)return `${N[m.freeRoomColor]}色房间准备免费`;
-  if(m.on==='dieTaken')return `取实体${m.faces.join('/')}点骰时：${m.vp?'+'+m.vp+'分':m.bothMoneyAndEmperor?'强度同时用于钱与皇帝':m.freeWildcard?'万能骰免费且强度+1':m.discount?'员工折扣额外+'+m.discount:m.power?'食饮强度+1':m.prepareRooms?'可额外付费准备一间房':m.hireStaff?'可额外原价雇一位员工':'皇帝前进2格'}${m.beforeOrAfterMain?'，可选在主动作前/后':''}`;
+  if(m.on==='dieTaken')return `取实体${m.faces.join('/')}点骰时：${m.vp?'+'+m.vp+'分':m.bothMoneyAndEmperor?'强度同时用于钱与皇冠':m.freeWildcard?'万能骰免费且强度+1':m.discount?'员工折扣额外+'+m.discount:m.power?'食饮强度+1':m.prepareRooms?'可额外付费准备一间房':m.hireStaff?'可额外原价雇一位员工':'皇冠前进2格'}${m.beforeOrAfterMain?'，可选在主动作前/后':''}`;
   if(m.on==='roomOccupied')return '任何方式使房间入住：+1克朗';
-  if(m.on==='emperorBonus')return '每次获得皇帝奖励：额外+5分';
+  if(m.on==='emperorBonus')return '每次获得皇冠奖励：额外+5分';
   if(m.serveCost===0)return '厨房上菜免费（单次最多3件，可重复）';
   if(m.guestQueueCost===0)return '从市场迎客免费';
-  if(m.emperorPenaltyAvoidCost)return '皇帝处罚前可付1克朗免罚';
-  if(m.score)return {occupiedColor:`每间已入住${N[m.color]}房+${m.each}分`,occupiedRooms:'每间入住房+1分',playedStaff:'每位已雇员工（包括自己）+2分',preparedOrOccupiedRooms:'每间已准备或入住房+1分',occupiedGroups:'每个完全入住房组+2分',claimedObjectives:'每个已领取目标+5分',emperorPosition:'皇帝每格+2分，无12分上限',occupiedFloors:'每个完全入住楼层+5分',occupiedColumns:'每个完全入住列+5分',minOccupiedColorCount:'每组红、蓝、黄各一间入住房+4分',copyOpponentEndgameStaff:'选择并按自己的酒店计算一位对手的终局员工（自动取最高）'}[m.score];
+  if(m.emperorPenaltyAvoidCost)return '皇冠处罚前可付1克朗免罚';
+  if(m.score)return {occupiedColor:`每间已入住${N[m.color]}房+${m.each}分`,occupiedRooms:'每间入住房+1分',playedStaff:'每位已雇员工（包括自己）+2分',preparedOrOccupiedRooms:'每间已准备或入住房+1分',occupiedGroups:'每个完全入住房组+2分',claimedObjectives:'每个已领取目标+5分',emperorPosition:'皇冠每格+2分，无12分上限',occupiedFloors:'每个完全入住楼层+5分',occupiedColumns:'每个完全入住列+5分',minOccupiedColorCount:'每组红、蓝、黄各一间入住房+4分',copyOpponentEndgameStaff:'选择并按自己的酒店计算一位对手的终局员工（自动取最高）'}[m.score];
   return '';
 }
 function staffCard(c, activate=false) { return `<article class="card staff-card${c.usedRound===room?.game.round?' used':''}"><div class="staff-card-top"><span class="staff-seal" aria-hidden="true">${icon(c.timing==='end'?'vp':c.timing==='round'?'bell':'key')}</span><span class="card-number">EMPLOYEE · ${String(c.id).padStart(2,'0')}</span><span class="card-cost">${c.cost} K</span></div><h3>${esc(c.name)}</h3><small>${timing[c.timing]}</small><p>${esc(staffText(c))}</p>${activate && c.timing==='round' ? `<button data-do="activate" data-id="${c.id}"${disabled(!isMyTurn()||!!room.game.prompt||c.usedRound===room.game.round)}>使用${c.usedRound===room.game.round?'（本轮已用）':''}</button>`:''}</article>`; }
@@ -79,7 +81,7 @@ function promptHtml(g) {
   let inputs='';
   if(e.kind==='goods') inputs=`<div class="counter-grid">${R.map(r=>`<label>${N[r]}<input name="count:${r}" type="number" min="0" max="${e.amount||e.counts?.[r]||0}" value="${e.counts?.[r]||0}"${e.counts?' readonly':''}${disabled(e.pair&&!e.pair.includes(r))}></label>`).join('')}</div><p class="hint">下方填写直接送给客人的数量，其余会进入厨房。此处只能分配这次新获得的食饮。</p>${allocationInputs(p)}`;
   if(e.kind==='prepare') inputs=hotelGrid(p,{chooser:true,mode:'closed',max:e.amount,key:e.uid});
-  if(e.kind==='moneyEmperor') inputs=`<label>用于前进皇帝的格数（余下获得克朗）<input type="number" name="emperor" min="0" max="${e.amount}" value="0"></label>`;
+  if(e.kind==='moneyEmperor') inputs=`<label>用于前进皇冠的格数（余下获得克朗）<input type="number" name="emperor" min="0" max="${e.amount}" value="0"></label>`;
   if(e.kind==='hire') { const cards=e.drawn||p.hand;inputs=`<label>选择员工<select name="staffId">${e.drawn?'<option value="">不雇用，全部放回牌库底</option>':''}${cards.map(c=>`<option value="${c.id}">#${c.id} ${esc(c.name)} · ${e.free?0:Math.max(0,c.cost-(e.discount||0))}克朗</option>`).join('')}</select></label><div class="staff-list">${cards.map(c=>staffCard(c)).join('')}</div>${e.drawn?'<p class="hint">未雇用的牌按下方顺序放回牌库底，可调整顺序。</p><label>牌库底顺序（牌号，以逗号分隔，已雇牌自动忽略）<input name="returnOrder" type="text" value="'+cards.map(c=>c.id).join(',')+'"></label>':''}`; }
   if(e.kind==='attract') inputs=`<label>选择免费迎接的客人<select name="index">${g.market.map((c,i)=>c?`<option value="${i}">#${c.id} ${esc(c.name)}</option>`:'').join('')}</select></label>`;
   if(e.kind==='complete') inputs=`<label>选择订单<select name="guestId">${p.cafe.filter(c=>!e.color||c.color===e.color).map(c=>`<option value="${c.uid}">#${c.id} ${esc(c.name)}</option>`).join('')}</select></label>`;
@@ -92,7 +94,7 @@ function promptHtml(g) {
     if(e.penalty==='removePrepared') inputs=hotelGrid(p,{chooser:true,mode:'prepared',max:e.amount,key:e.uid});
     if(e.penalty==='removeOccupied') inputs=`<p class="hint">按从高到低的楼层顺序选择：${e.floors.join('、')}楼。</p>${hotelGrid(p,{chooser:true,mode:'occupied',max:e.floors.length,key:e.uid})}`;
   }
-  return `<section class="panel prompt"><h2>处理${e.kind==='penalty'?'皇帝处罚':'效果'}</h2><p>${esc(effectText(e)||`在${e.amount}格强度中分配钱与皇帝`)}</p><form data-form="resolve" data-key="${e.uid}" class="controls">${inputs}${end}</form></section>`;
+  return `<section class="panel prompt"><h2>处理${e.kind==='penalty'?'皇冠处罚':'效果'}</h2><p>${esc(effectText(e)||`在${e.amount}格强度中分配钱与皇冠`)}</p><form data-form="resolve" data-key="${e.uid}" class="controls">${inputs}${end}</form></section>`;
 }
 function diceInputs(g, extra=false) { return `<div class="columns"><label>骰面<select name="face">${[1,2,3,4,5,6].filter(n=>g.dice.includes(n)).map(n=>`<option value="${n}">${n}点 · ${g.dice.filter(x=>x===n).length}枚</option>`).join('')}</select></label><label>6点复制的动作<select name="asFace">${[1,2,3,4,5].map(n=>`<option value="${n}">动作${n}</option>`).join('')}</select></label></div>${!extra?`<label class="check-label"><input type="checkbox" name="boost"${disabled(g.turn?.boostUsed)}>付1克朗，主动作强度+1（每回合一次）</label><label class="check-label"><input type="checkbox" name="staffBefore">骰面员工的附带效果放在主动作之前处理</label>`:''}`; }
 function actionPanel(g) {
@@ -114,21 +116,21 @@ function scoreHtml(g) {
 }
 function renderGame(){
   root.className='view-game';
-  const g=room.game,p=me(),active=g.players.find(x=>x.id===g.activePlayerId)?.name;
-  const allowTake=isMyTurn()&&!g.prompt&&(g.phase==='setupGuest'||g.phase==='turn'&&!g.turn.dieTaken&&!g.turn.guestTaken);
-  root.innerHTML=renderTable(g,p,{room,preview,esc,icon,dieIcon,actionPanel,extraPanel,hotelGrid,goodChips,guestCard,staffCard,effectText,scoreHtml,isMyTurn,disabled,allowTake,active,previewToolbar});
-  selections.clear();
+  tabletop.update(room.game,me(),{room,preview,effectText,staffText,previewToolbar,copyRoom:copyRoomLink});
 }
+async function copyRoomLink(){const url=new URL(location.href);url.search='';url.searchParams.set('room',room.code);try{await navigator.clipboard.writeText(url.href);flash('好友链接已复制；请另行私下发送访问密码。');}catch{flash(`好友链接：${url.href}`);}}
 function renderLobby() {
+  document.body.classList.remove('is-tabletop');
   const g=room.game;
   root.innerHTML=`<section class="panel"><div class="row spread"><h2>${esc(g.name)}</h2><button data-do="home">返回大厅</button></div><p>房间码 <strong class="roomcode">${esc(room.code)}</strong></p><p>把房间码或链接给好友；好友需要先输入饭店访问密码。</p><div class="player-overview">${g.players.map(p=>`<article><h3>${esc(p.name)}${p.id===g.hostId?' · 房主':''}${p.id===auth.player.id?' · 你':''}</h3>${auth.player.id===g.hostId&&p.id!==g.hostId?`<button data-do="kick" data-id="${esc(p.id)}">移出房间</button>`:''}</article>`).join('')}</div><div class="form-actions"><button data-do="copy-room">复制好友链接</button><button class="primary" data-do="start"${disabled(g.hostId!==auth.player.id||g.players.length<2)}>开始 ${g.players.length} 人对局</button></div><p class="hint">容量 ${g.maxPlayers} 人。开始后仅原玩家可重连；每位玩家应使用自己的浏览器身份。</p></section>`;
 }
 async function renderHome() {
+  document.body.classList.remove('is-tabletop');
   root.className='view-home';room=null; clearTimeout(pollTimer); const data=await api('/me');
   root.innerHTML=`<section class="panel row spread"><span class="player-name">${esc(auth.player.name)}，欢迎回来</span><button data-do="logout">退出此玩家</button></section><div class="columns"><section class="panel"><h2>创建好友桌</h2><form data-form="create" class="stack"><label>房间名称<input name="name" value="${esc(auth.player.name)}的饭店" maxlength="40" required></label><label>最多人数<select name="maxPlayers"><option value="4">4人</option><option value="3">3人</option><option value="2">2人</option></select></label><label>酒店版面<select name="hotelMode"><option value="night">标准夜面（相同酒店）</option><option value="day">不同日面（随机分配不同酒店）</option></select></label><button class="primary">创建房间</button></form></section><section class="panel"><h2>加入好友桌</h2><form data-form="join" class="stack"><label>7位房间码<input name="code" type="text" maxlength="7" autocapitalize="characters" autocomplete="off" value="${esc(new URLSearchParams(location.search).get('room')||'')}" required></label><button class="primary">加入房间</button></form><hr><p class="hint">每位玩家使用自己的浏览器身份。刷新和短暂断线后，可以回到同一座位继续。</p></section></div><section class="panel"><h2>我的对局</h2><div class="stack">${data.rooms.map(r=>`<div class="row spread"><span>${esc(r.name)} · ${esc(r.code)} · ${r.players}人 · ${{lobby:'等待开始',finished:'已结束'}[r.phase]||'进行中'}</span><button data-do="open-room" data-code="${esc(r.code)}">回到对局</button></div>`).join('')||'<p class="empty">还没有对局</p>'}</div></section><details><summary>此玩家的重连密钥</summary><div><p class="hint">仅在需要换浏览器恢复同一座位时导出。持有文件的人可以操作你的座位，请自行保管。</p><button data-do="export-session">导出重连文件</button><label>导入已有重连文件<input type="file" id="import-session" accept="application/json,.json"></label></div></details>`;
   root.insertAdjacentHTML('afterbegin',previewEntry());
 }
-function renderLogin(){root.className='view-arrival';root.innerHTML=renderArrival(health,icon);}
+function renderLogin(){document.body.classList.remove('is-tabletop');root.className='view-arrival';root.innerHTML=renderArrival(health,icon);}
 function updateRoom(next) { if(preview)return;if(!room||next.code!==room.code||next.version>=room.version) {room=next; if(room.game.phase==='lobby')renderLobby();else renderGame();} schedulePoll(); }
 async function refreshRoom() { if(!room||preview)return; const currentCode=room.code; const next=await api(`/rooms/${currentCode}?since=${room.version}`); if(room?.code===currentCode&&!next.unchanged)updateRoom(next); }
 function schedulePoll() { clearTimeout(pollTimer); if(preview||!room||document.hidden)return; pollTimer=setTimeout(async()=>{try{if(!busy)await refreshRoom();}catch(e){failures++;status(`连接中断，正在重试（${failures}）`,true);if(e.status===401){saveAuth(null);room=null;health=await api('/health',{anonymous:true});renderLogin();return;}}schedulePoll();},Math.min(10000,2000*(failures+1))); }
@@ -137,11 +139,11 @@ function previewToolbar(){return `<section class="preview-toolbar"><div class="p
 function refreshPreview(){room={code:'PREVIEW',version:0,game:preview.module.viewGame(preview.state,preview.seatId)};status('单人画面测试');renderGame();}
 async function openPreview(scene='showcase',board='night'){
   const url=new URL(location.href);url.searchParams.set('preview','1');history.replaceState(null,'',url);
-  if(!auth){renderLogin();flash('请先设置访问密码并登录，随后会直接进入单人画面测试。');root.querySelector('input')?.focus();return;}
+  if(!auth){renderLogin();flash('请先输入好友访问密码并登录，随后会直接进入单人画面测试。');root.querySelector('input')?.focus();return;}
   if(!preview){try{await api('/me');}catch(e){if(e.status===401){saveAuth(null);renderLogin();flash('请重新登录后进入单人画面测试。');return;}throw e;}}
   clearTimeout(pollTimer);previewModule ||= await import('./preview-engine.mjs');
   const state=previewModule.makePreview(scene,board);preview={module:previewModule,state,scene,board,seatId:previewModule.activeSeat(state),follow:true};
-  refreshPreview();
+  tabletop.reset();refreshPreview();
 }
 async function closePreview(){preview=null;room=null;const url=new URL(location.href);url.searchParams.delete('preview');history.replaceState(null,'',url);if(!health){try{health=await api('/health',{anonymous:true});}catch{health={configured:false,canSetup:false};}}if(auth)await renderHome();else renderLogin();}
 async function task(fn) { if(busy)return; busy=true;flash('');try{await fn();}catch(e){flash(e.message);if(e.status===409&&room){try{await refreshRoom();}catch{}}}finally{busy=false;schedulePoll();} }

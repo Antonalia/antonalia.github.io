@@ -1,0 +1,13 @@
+.private/
+.env
+.env.*
+!.env.example
+node_modules/
+test-output/
+reference/*.pdf
+reference/*.html
+reference/*.png
+reference/*.gif
+reference/card-images/
+docs/
+.git/

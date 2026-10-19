@@ -10,9 +10,9 @@ test('在原有搜索索引追加好友入口，不重复、保留文章、支�
   assert.match(result,/<title>原文章<\/title>/);assert.match(result,/奥地利大饭店/);assert.match(result,/Grand Austria Hotel/);assert.match(result,/<url>\/blog\/friends-hotel\/<\/url>/);
   assert.equal(appendSearchEntry(result,'/blog/'),result);
 });
-test('只生成公开前端、示例规则包与两张原创插画，不打包认证、密码、存档或资料',()=>{
+test('只生成公开前端、示例规则包与原创插画，不打包认证、密码、存档或资料',()=>{
   const routes=publicRoutes(projectDir());
-  assert.deepEqual(routes.map(r=>r.path),['index.html','style.css','app.mjs','config.js','visuals.mjs','table-view.mjs','arrival-view.mjs','display-mode.mjs','preview-engine.mjs','assets/hotel-vienna.png','assets/guest-portraits.png'].map(f=>'friends-hotel/'+f));
+  assert.deepEqual(routes.map(r=>r.path),['index.html','style.css','app.mjs','config.js','visuals.mjs','table-view.mjs','arrival-view.mjs','display-mode.mjs','tabletop.css','polish.css','board-layout.css','chinese.mjs','interaction-rules.mjs','card-art.mjs','preview-engine.mjs','assets/hotel-vienna.png','assets/guest-portraits.png','assets/guest-portraits-v2.png','assets/staff-portraits.png'].map(f=>'friends-hotel/'+f));
   assert.match(routes[0].data.toString(),/noindex,nofollow/);
   assert.match(routes.find(r=>r.path.endsWith('config.js')).data,/HOTEL_API_BASE = "\/friends-hotel"/);
   for(const r of routes)assert.doesNotMatch(r.path,/\.private|\.env|lib\/|reference\/|api\//);

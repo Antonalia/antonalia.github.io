@@ -12,3 +12,6 @@ reference/*.png
 reference/*.gif
 reference/card-images/
 test-output/
+
+.vercel
+.env*

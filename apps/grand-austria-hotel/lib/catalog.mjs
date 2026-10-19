@@ -1,4 +1,5 @@
 import facts from '../reference/card-facts-2021.json' with { type: 'json' };
+import {GUEST_NAMES} from '../public/chinese.mjs';
 
 const goods = ['strudel', 'cake', 'wine', 'coffee'];
 export const STAFF_NAMES = ['早餐侍者','女侍者','调酒师','副厨师长','行李员','马夫','按摩师','导游','管家','司机','花艺师','客房主管','餐厅经理','装潢师','擦鞋匠','洗衣员','厨房助手','稽核员','室内建筑师','侦探','主厨','人事经理','管理员','领班侍者','送货员','会议经理','预订经理','礼宾员','秘书','接待员','女房务员','副经理','男楼层管家','前台主管','门童','侍酒师','客房服务员','搬运工','糕点师','市场总监','接线员','园丁','咖啡师','冷菜厨师','泳池管理员','女楼层管家','电梯员','饭店经理'];
@@ -28,7 +29,7 @@ export const STAFF = facts.staff.map(c => ({ id: c.id, key: key(c.name), english
   timing: c.timing === 'endgame' ? 'end' : c.timing, mechanics: c.mechanics, effects: staffEffects(c.mechanics), end: endEffect(c.mechanics),
   trigger: c.mechanics.on === 'guestAccommodated' ? { event: 'checkin', color: c.mechanics.guestColor, minOrderSize: c.mechanics.minOrderSize,
     effects: ['money','emperor','vp'].filter(k => c.mechanics[k]).map(kind => ({ kind, amount: c.mechanics[kind] })) } : undefined }));
-export const GUESTS = facts.guests.map(c => ({ id: c.id, name: c.name, color: c.color, needs: c.order, vp: c.vp, effects: c.reward.flatMap(convertReward) }));
+export const GUESTS = facts.guests.map(c => ({ id: c.id, name: GUEST_NAMES[c.id-49], englishName:c.name, color: c.color, needs: c.order, vp: c.vp, effects: c.reward.flatMap(convertReward) }));
 
 const COLORS = { B:'blue',Y:'yellow',R:'red' };
 function makeHotel(board) { return board.colorsBottomToTop.flatMap((row,f)=>[...row].map((c,i)=>({
