@@ -8,6 +8,7 @@ import {chineseText} from '../public/chinese.mjs';
 import {draftGuest,guestSelection} from '../public/interaction-rules.mjs';
 import {foodTokens,guestPortraitClass,staffPortraitClass,playerScoreboard,effectMarkup,resourceTextMarkup,guestRewardMarkup,roomRegion,hiddenHandMarkup} from '../public/card-art.mjs';
 import {STAFF,HOTELS} from '../lib/catalog.mjs';
+import {imperialTrackMarkup,roundTimelineMarkup,objectiveCardMarkup} from '../public/card-art.mjs';
 const state=makePreview(),g=viewGame(state,'preview-anna'),p=g.players[0];
 test('food buttons enforce combined power, permitted types and balanced pairs before submission',()=>{
   const e={kind:'goods',amount:3,pair:['strudel','cake'],balanced:true};let counts={strudel:0,cake:0,wine:0,coffee:0};
@@ -69,6 +70,32 @@ test('guest confirmation rejects stale selection, insufficient cash, full cafe a
   assert.equal(guestSelection(g,{...p,money:0},selected).valid,false);
   assert.equal(guestSelection(g,{...p,cafe:[...p.cafe,p.cafe[0]]},selected).valid,false);
   assert.equal(guestSelection({...g,turn:{...g.turn,guestTaken:true}},p,selected).valid,false);
+});
+
+test('满座直接跳过自动迎客，起始与普通回合仍保留未满座时的选择',()=>{
+  const full={...p,cafe:[p.cafe[0],p.cafe[1],p.cafe[0]]};
+  assert.equal(shouldOfferGuest(g,full),false);
+  assert.equal(shouldOfferGuest({...g,phase:'setupGuest'},full),false);
+  assert.equal(shouldOfferGuest({...g,phase:'setupGuest'},p),true);
+});
+
+test('皇冠轨道显示全部玩家，重合位置保留各自标记，姓名安全转义',()=>{
+  const players=[{id:'one',name:'安娜',emperor:8},{id:'two',name:'约瑟夫',emperor:8},{id:'three',name:'<img onerror=test>',emperor:8},{id:'four',name:'第四位',emperor:13}];
+  const html=imperialTrackMarkup({players},players[0]);
+  assert.equal((html.match(/class="tt-track-space/g)||[]).length,14);
+  for(const name of ['安娜','约瑟夫','第四位'])assert.ok(html.includes(name));
+  for(let index=0;index<4;index++)assert.ok(html.includes('seat-'+index));
+  assert.match(html,/&lt;img onerror=test&gt;/);assert.doesNotMatch(html,/<img/);
+  assert.match(roundTimelineMarkup(5),/aria-current="step"/);assert.equal((roundTimelineMarkup(5).match(/class="tt-round-step/g)||[]).length,7);
+});
+
+test('目标公开当前达成者和既往领取者，不因花掉钱而丢失领取记录',()=>{
+  const state=makePreview('overview'),view=viewGame(state,'preview-anna'),objective=view.objectives[0];
+  assert.deepEqual(objective.achievedBy,['preview-anna']);assert.deepEqual(objective.claimed,['preview-josef']);
+  const html=objectiveCardMarkup(view,view.players[0],objective,{canClaim:true});
+  assert.match(html,/已领取 · 15分/);assert.match(html,/已达成未领取/);assert.match(html,/领取目标 · \+10分/);
+  assert.ok(html.includes('安娜'));assert.ok(html.includes('约瑟夫'));
+  const other=viewGame(state,'preview-josef').objectives[0];assert.deepEqual(other.achievedBy,objective.achievedBy);
 });
 test('the start guest and reward guest use zero cost but still require a valid confirmed draft',()=>{
   const selected=draftGuest(g,0),poor={...p,money:0};

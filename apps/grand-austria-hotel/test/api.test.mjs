@@ -16,6 +16,59 @@ async function fixture({limited=false,setup=false}={}){
   async function call(path,{token,body,method=body?'POST':'GET',headers={}}={}){const res=await fetch(base+path,{method,headers:{...body?{'Content-Type':'application/json'}:{},...token?{Authorization:`Bearer ${token}`}:{},...headers},body:body?JSON.stringify(body):undefined});return{status:res.status,body:res.headers.get('content-type')?.includes('application/json')?await res.json():await res.text(),headers:res.headers};}
   return{store,base,call,close:()=>new Promise(resolve=>server.close(resolve))};
 }
+
+test('联机桌上工具：全员表态、并发通过一次、反悔同步和过期计时CAS',async t=>{
+  const f=await fixture();t.after(f.close);
+  const a=(await f.call('/api/login',{body:{name:'甲',password:PASSWORD}})).body,b=(await f.call('/api/login',{body:{name:'乙',password:PASSWORD}})).body;
+  let r=(await f.call('/api/rooms',{token:a.token,body:{maxPlayers:2}})).body;
+  r=(await f.call(`/api/rooms/${r.code}/join`,{token:b.token,body:{}})).body;
+  const byId={[a.player.id]:a,[b.player.id]:b};
+  const send=(who,action,{version=r.version,requestId=randomUUID()}={})=>f.call(`/api/rooms/${r.code}/action`,{token:who.token,body:{action,version,requestId}});
+  const commit=async(who,action)=>{const res=await send(who,action);assert.equal(res.status,200,JSON.stringify(res.body));r=res.body;return r;};
+  await commit(a,{type:'start'});
+  while(r.game.phase==='setupGuest')await commit(byId[r.game.activePlayerId],{type:'setupGuest',index:4});
+  while(r.game.phase==='setupRooms')await commit(byId[r.game.activePlayerId],{type:'setupRooms',rooms:['1-1','1-2','1-3']});
+  const owner=byId[r.game.activePlayerId],other=owner===a?b:a,initialDice=[...r.game.dice];
+  await commit(owner,{type:'table-request',kind:'reroll'});
+  const proposal=r.game.tableControls.pending;assert.equal(proposal.before,undefined);assert.deepEqual(r.game.dice,initialDice);
+  assert.equal((await send(owner,{type:'attract',index:4})).status,400);
+  const version=r.version,requestId=randomUUID(),approval={type:'table-vote',proposalId:proposal.id,approve:true};
+  const responses=await Promise.all([send(other,approval,{version,requestId}),send(other,approval,{version})]);
+  assert.deepEqual(responses.map(x=>x.status).sort(),[200,409]);r=responses.find(x=>x.status===200).body;
+  assert.equal(r.version,version+1);assert.equal(r.game.tableControls.pending,null);assert.equal(r.game.dice.length,10);
+  // Whichever racing request won, fetching the current state cannot expose checkpoints.
+  const sync=(await f.call(`/api/rooms/${r.code}`,{token:other.token})).body;
+  assert.deepEqual(sync.game.dice,r.game.dice);assert.equal(sync.game.tableControls.history,undefined);
+  const before=structuredClone(r.game);await commit(owner,{type:'attract',index:4});
+  assert.equal(r.game.tableControls.canReroll,false);await commit(owner,{type:'table-request',kind:'undo'});
+  await commit(other,{type:'table-vote',proposalId:r.game.tableControls.pending.id,approve:true});
+  assert.deepEqual(r.game.market,before.market);assert.deepEqual(r.game.players.map(p=>p.cafe),before.players.map(p=>p.cafe));assert.deepEqual(r.game.dice,before.dice);
+  await commit(a,{type:'clock-config',enabled:true,durationSeconds:5,warningSeconds:1,autoStart:true,autoSkip:true,theme:'rose'});
+  const stored=await f.store.room(r.code);stored.game.tableSession.clock.deadline=Date.now()-1;assert.equal(await f.store.saveRoom(stored,stored.version),true);
+  const timeoutVersion=r.version;
+  const reads=await Promise.all([f.call(`/api/rooms/${r.code}`,{token:a.token}),f.call(`/api/rooms/${r.code}`,{token:b.token})]);
+  assert.deepEqual(reads.map(x=>x.body.version),[timeoutVersion+1,timeoutVersion+1]);assert.ok(reads.every(x=>x.body.game.activePlayerId===other.player.id));
+  assert.equal((await send(owner,{type:'attract',index:4},{version:timeoutVersion})).status,409);
+});
+test('official solo room is saved, rejects human joins and hidden bot seats, and commits automatic actions once',async t=>{
+  const f=await fixture();t.after(f.close);
+  const a=(await f.call('/api/login',{body:{name:'单人甲',password:PASSWORD}})).body,b=(await f.call('/api/login',{body:{name:'乙',password:PASSWORD}})).body;
+  let r=(await f.call('/api/rooms',{token:a.token,body:{mode:'solo',difficulty:'hard',hotelMode:'day'}})).body;
+  assert.equal(r.game.solo.difficulty,'hard');assert.equal(r.game.players.filter(p=>p.bot).length,1);
+  assert.equal((await f.call(`/api/rooms/${r.code}/join`,{token:b.token,body:{}})).status,400);
+  assert.equal((await f.call('/api/room-login',{body:{name:'丙',code:r.code}})).status,400);
+  assert.equal((await f.call(`/api/rooms/${r.code}`,{token:b.token})).status,403);
+  async function commit(action,requestId=randomUUID(),version=r.version){const result=await f.call(`/api/rooms/${r.code}/action`,{token:a.token,body:{action,requestId,version}});assert.equal(result.status,200,JSON.stringify(result.body));r=result.body;return r;}
+  await commit({type:'start'});const e=r.game.prompt;assert.equal(e.kind,'soloDraft');assert.equal(e.drawn.length,10);
+  assert.equal(r.game.solo.privateStaff,undefined);assert.equal(r.game.solo.deck,undefined);
+  await commit({type:'resolve',promptId:e.uid,cards:e.drawn.slice(0,6).map(c=>c.id),returnOrder:e.drawn.slice(6).map(c=>c.id)});
+  await commit({type:'setupGuest',index:4});const requestId=randomUUID(),version=r.version;
+  await commit({type:'setupRooms',rooms:['1-1','1-2','1-3']},requestId,version);assert.equal(r.game.solo.turns,1);assert.equal(r.game.activePlayerId,a.player.id);
+  const after=structuredClone(r);await commit({type:'setupRooms',rooms:['1-1','1-2','1-3']},requestId,version);assert.equal(r.version,after.version);assert.equal(r.game.solo.turns,1);
+  const read=(await f.call(`/api/rooms/${r.code}`,{token:a.token})).body;assert.deepEqual(read.game.solo,r.game.solo);assert.deepEqual(read.game.market,r.game.market);
+  const rooms=(await f.call('/api/me',{token:a.token})).body.rooms;assert.equal(rooms.find(x=>x.code===r.code).mode,'solo');
+});
+
 test('密码保护与来源限制：未登录不可列/建/读房间，错误密码拒绝',async t=>{
   const f=await fixture();t.after(f.close);
   assert.equal((await f.call('/api/me')).status,401);assert.equal((await f.call('/api/rooms',{body:{}})).status,401);

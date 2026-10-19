@@ -23,7 +23,7 @@ export class LocalStore {
   async createSession(hash, session) { return this.mutate(d => { d.sessions[hash] = session; const now = Date.now(); for (const [key, value] of Object.entries(d.sessions)) if (value.expiresAt < now) delete d.sessions[key]; }); }
   async deleteSession(hash) { return this.mutate(d => { delete d.sessions[hash]; }); }
   async room(code) { await this.tail; await this.load(); return structuredClone(this.data.rooms[code] || null); }
-  async rooms(playerId) { await this.tail; await this.load(); return Object.values(this.data.rooms).filter(r => r.expiresAt > Date.now() && r.game.players.some(p => p.id === playerId)).map(r => ({ code: r.code, name: r.game.name, phase: r.game.phase, players: r.game.players.length, updatedAt: r.updatedAt })); }
+  async rooms(playerId) { await this.tail; await this.load(); return Object.values(this.data.rooms).filter(r => r.expiresAt > Date.now() && r.game.players.some(p => p.id === playerId)).map(r => ({ code: r.code, name: r.game.name, phase: r.game.phase, mode:r.game.solo?'solo':'friends', players: r.game.players.length, updatedAt: r.updatedAt })); }
   async createRoom(room) { return this.mutate(d => { const now = Date.now(); for (const [key, value] of Object.entries(d.rooms)) if (value.expiresAt <= now) delete d.rooms[key]; if (d.rooms[room.code]) return false; d.rooms[room.code] = room; return true; }); }
   async saveRoom(room, previousVersion) { return this.mutate(d => { const current=d.rooms[room.code]; if (!current || current.version !== previousVersion || (current.instanceId || current.createdAt) !== (room.instanceId || room.createdAt)) return false; d.rooms[room.code] = room; return true; }); }
 }
@@ -38,7 +38,7 @@ export class NeonStore {
   async deleteSession(hash) { const q = await this.sql(); await q`DELETE FROM hotel.sessions WHERE token_hash=${hash}`; }
   async room(code) { const q = await this.sql(); const rows = await q`SELECT data FROM hotel.rooms WHERE code=${code} AND expires_at > now()`; return rows[0]?.data || null; }
   async rooms(playerId) {
-    const q = await this.sql(); const rows = await q`SELECT code,data->'game'->>'name' AS name,data->'game'->>'phase' AS phase,jsonb_array_length(data->'game'->'players') AS players,data->>'updatedAt' AS "updatedAt" FROM hotel.rooms WHERE data->'game'->'players' @> ${JSON.stringify([{ id: playerId }])}::jsonb AND expires_at > now() ORDER BY updated_at DESC LIMIT 20`;
+    const q = await this.sql(); const rows = await q`SELECT code,data->'game'->>'name' AS name,data->'game'->>'phase' AS phase,CASE WHEN data->'game'->'solo' IS NOT NULL THEN 'solo' ELSE 'friends' END AS mode,jsonb_array_length(data->'game'->'players') AS players,data->>'updatedAt' AS "updatedAt" FROM hotel.rooms WHERE data->'game'->'players' @> ${JSON.stringify([{ id: playerId }])}::jsonb AND expires_at > now() ORDER BY updated_at DESC LIMIT 20`;
     return rows;
   }
   async createRoom(room) {

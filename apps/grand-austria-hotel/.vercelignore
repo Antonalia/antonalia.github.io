@@ -9,5 +9,8 @@ reference/*.html
 reference/*.png
 reference/*.gif
 reference/card-images/
+reference/solo-helper/
+reference/solo-helper-tree.json
+reference/official-*
 docs/
 .git/

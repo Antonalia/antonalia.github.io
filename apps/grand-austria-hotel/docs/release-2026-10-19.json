@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-19T08:49:42.906Z",
+  "origin": "https://grand-austria-hotel.vercel.app",
+  "checks": [
+    "health configured; initial password setup disabled",
+    "all three difficulties completed seven rounds and fourteen automatic turns",
+    "ten-select-six and staff return order",
+    "human night/day with fixed automa night board",
+    "request replay deduplication and Neon GET persistence",
+    "hidden automa deck/staff identities withheld",
+    "strict solo victory and final scores"
+  ],
+  "solo": [
+    {
+      "difficulty": "easy",
+      "rounds": 7,
+      "automaTurns": 14,
+      "steps": 44,
+      "humanScore": 31,
+      "automaScore": 102,
+      "passed": true
+    },
+    {
+      "difficulty": "medium",
+      "rounds": 7,
+      "automaTurns": 14,
+      "steps": 42,
+      "humanScore": 10,
+      "automaScore": 161,
+      "passed": true
+    },
+    {
+      "difficulty": "hard",
+      "rounds": 7,
+      "automaTurns": 14,
+      "steps": 44,
+      "humanScore": 28,
+      "automaScore": 148,
+      "passed": true
+    }
+  ],
+  "frontend": "https://antonalia.github.io/friends-hotel/",
+  "vercelDeployment": "dpl_CuG5d5a4LgtRK8EHxJqq8kJbswnq",
+  "localGameTests": 120,
+  "blogTests": 66,
+  "uploadAudit": {
+    "files": 37,
+    "privateFiles": 0
+  },
+  "existingDatabaseAndPasswordPreserved": true
+}

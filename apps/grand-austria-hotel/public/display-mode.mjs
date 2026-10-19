@@ -1,7 +1,8 @@
-// Keep this outside the re-rendered game so fullscreen survives seat/scene changes.
+// Move one persistent control between page and game headers; never clone its listeners.
 export function initDisplayMode(doc=document){
   const button=doc.getElementById('toggle-fullscreen'),label=doc.getElementById('fullscreen-label'),hint=doc.getElementById('fullscreen-hint');
   const root=doc.documentElement;
+  const controls=doc.getElementById('display-controls'),home=controls?.parentElement;
   let immersive=false,pending=false,hintTimer;
   const native=()=>doc.fullscreenElement||doc.webkitFullscreenElement;
   function message(text){
@@ -39,5 +40,5 @@ export function initDisplayMode(doc=document){
   button.addEventListener('click',toggle);
   doc.addEventListener('fullscreenchange',changed);doc.addEventListener('webkitfullscreenchange',changed);doc.addEventListener('keydown',key);
   sync();
-  return {toggle,dispose(){clearTimeout(hintTimer);button.removeEventListener('click',toggle);doc.removeEventListener('fullscreenchange',changed);doc.removeEventListener('webkitfullscreenchange',changed);doc.removeEventListener('keydown',key);}};
+  return {toggle,mount(target=home,{hidden=false}={}){if(controls){controls.hidden=hidden;if(target)target.append(controls);}},dispose(){clearTimeout(hintTimer);button.removeEventListener('click',toggle);doc.removeEventListener('fullscreenchange',changed);doc.removeEventListener('webkitfullscreenchange',changed);doc.removeEventListener('keydown',key);}};
 }

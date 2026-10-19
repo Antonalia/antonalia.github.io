@@ -2,7 +2,7 @@ import {icon,dieIcon} from './visuals.mjs';
 import {createTabletop} from './table-view.mjs';
 import {renderArrival,previewEntry,renderOnlinePending} from './arrival-view.mjs';
 import {initDisplayMode} from './display-mode.mjs';
-initDisplayMode();
+const displayMode=initDisplayMode();
 const R = ['strudel','cake','wine','coffee'];
 const N = {strudel:'苹果卷',cake:'蛋糕',wine:'葡萄酒',coffee:'咖啡',red:'红',blue:'蓝',yellow:'黄',green:'绿'};
 const timing = {round:'每轮一次',permanent:'持续',immediate:'立即',end:'终局计分'};
@@ -14,7 +14,7 @@ const storageKey = `gah.session.${profile}`;
 let auth = null, room = null, busy = false, health = null, pollTimer, failures = 0, lastUpdated = 0, preview=null, previewModule;
 let entryMode=/^\d{4}$/.test(new URLSearchParams(location.search).get('room')||'')?'room':'admin',entryName='';
 const selections = new Map();
-const tabletop=createTabletop(root,{onAction:a=>task(()=>action(a)),onExit:()=>task(async()=>{if(preview)await closePreview();else await renderHome();}),onFlash:flash});
+const tabletop=createTabletop(root,{onAction:a=>task(()=>action(a)),onExit:()=>task(async()=>{if(preview)await closePreview();else await renderHome();}),onFlash:flash,onLayout:(slot,overlayOpen)=>displayMode.mount(slot,{hidden:overlayOpen})});
 notice.addEventListener('click',()=>flash(''));
 try { auth = JSON.parse(localStorage.getItem(storageKey)); } catch { }
 const requestId = () => crypto.randomUUID ? crypto.randomUUID() : Array.from(crypto.getRandomValues(new Uint8Array(16)),n=>n.toString(16).padStart(2,'0')).join('');
@@ -34,6 +34,7 @@ async function api(path, { method='GET', body, anonymous=false }={}) {
 function saveAuth(value) { auth = value; if(value) localStorage.setItem(storageKey,JSON.stringify(value)); else localStorage.removeItem(storageKey); }
 function goodChips(values, total) { return `<div class="goods">${R.map(r => {const n=values?.[r]||0, need=total?.[r];return need || !total ? `<span class="good ${r}${need && n >= need ? ' done':''}">${icon(r)}<span>${N[r]}</span><b>${n}${need ? `/${need}`:''}</b></span>`:'';}).join('')}</div>`; }
 function effectText(e) {
+  if(e.kind==='soloDraft')return '起始员工：从10张中保留6张，其余4张按选择顺序放回牌库底';
   if(e.kind==='money')return `获得${e.amount}克朗`;
   if(e.kind==='vp')return `获得${e.amount}分`;
   if(e.kind==='emperor')return `皇冠前进${e.amount}格`;
@@ -117,16 +118,21 @@ function scoreHtml(g) {
 }
 function renderGame(){
   root.className='view-game';
-  tabletop.update(room.game,me(),{room,preview,effectText,staffText,previewToolbar,copyRoom:copyRoomLink});
+  tabletop.update(room.game,me(),{room,preview,effectText,staffText,previewToolbar,copyRoom:copyRoomLink,previewTick:()=>{if(!preview)return;const next=preview.module.advanceTableTime(preview.state);if(next!==preview.state){preview.state=next;if(preview.follow)preview.seatId=preview.module.activeSeat(next);refreshPreview();}}});
 }
 async function copyRoomLink(){const url=new URL(location.href);url.search='';url.searchParams.set('room',room.code);try{await navigator.clipboard.writeText(url.href);flash('好友链接已复制；好友填写昵称后即可凭房间码加入。');}catch{flash(`好友链接：${url.href}`);}}
 function renderLobby() {
+  displayMode.mount();
   document.body.classList.remove('is-tabletop');
   root.className='view-lobby';
   const g=room.game;
+  if(g.solo){
+    root.innerHTML=`<section class="panel"><div class="row spread"><h2>单人对局 · Leopold</h2><button data-do="home">返回大厅</button></div><p>官方基础版自动对手 · ${esc(g.solo.levelName)}</p><p>你正常经营饭店；Leopold按20张指令牌自动行动。开局从10张员工中选6张。总分必须高于Leopold才算获胜。</p><p>你的酒店：${g.hotelMode==='night'?'经典夜面':'随机日面'}；Leopold始终使用夜面。</p><button class="primary" data-do="start">开始单人对局</button></section>`;return;
+  }
   root.innerHTML=`<section class="panel"><div class="row spread"><h2>${esc(g.name)}</h2><button data-do="home">返回大厅</button></div><p>房间码 <strong class="roomcode">${esc(room.code)}</strong></p><p>把四位房间码或链接给好友；好友无需管理员密码。</p><div class="player-overview">${g.players.map(p=>`<article><h3>${esc(p.name)}${p.id===g.hostId?' · 房主':''}${p.id===auth.player.id?' · 你':''}</h3>${auth.player.id===g.hostId&&p.id!==g.hostId?`<button data-do="kick" data-id="${esc(p.id)}">移出房间</button>`:''}</article>`).join('')}</div><div class="form-actions"><button data-do="copy-room">复制好友链接</button><button class="primary" data-do="start"${disabled(g.hostId!==auth.player.id||g.players.length<2)}>开始 ${g.players.length} 人对局</button></div><p class="hint">容量 ${g.maxPlayers} 人。开始后仅原玩家可重连；每位玩家应使用自己的浏览器身份。</p></section>`;
 }
 async function renderHome({resumeRoom=false}={}) {
+  displayMode.mount();
   document.body.classList.remove('is-tabletop');
   root.className='view-home';room=null; clearTimeout(pollTimer); const data=await api('/me');
   saveAuth({...auth,access:data.access});
@@ -135,15 +141,16 @@ async function renderHome({resumeRoom=false}={}) {
     root.innerHTML=`<section class="panel row spread"><span>${esc(auth.player.name)}的游戏座位</span><button data-do="logout">退出此玩家</button></section><section class="panel"><h2>受邀房间</h2>${data.rooms.map(r=>`<p>${esc(r.name)} · 房间码 <strong class="roomcode">${esc(r.code)}</strong></p><button class="primary" data-do="open-room" data-code="${esc(r.code)}">返回房间</button>`).join('')||'<p>房间已过期或座位已被移除，请退出后重新输入房间码。</p>'}<p class="hint">此入口只进入受邀房间。创建新房间请使用统一管理员密码。</p></section>`;
     return;
   }
-  root.innerHTML=`<section class="panel row spread"><span class="player-name">${esc(auth.player.name)}，欢迎回来</span><button data-do="logout">退出此玩家</button></section><div class="columns"><section class="panel"><h2>创建好友桌</h2><form data-form="create" class="stack"><label>房间名称<input name="name" value="${esc(auth.player.name)}的饭店" maxlength="40" required></label><label>最多人数<select name="maxPlayers"><option value="4">4人</option><option value="3">3人</option><option value="2">2人</option></select></label><label>酒店版面<select name="hotelMode"><option value="night">标准夜面（相同酒店）</option><option value="day">不同日面（随机分配不同酒店）</option></select></label><button class="primary">创建房间</button></form></section><section class="panel"><h2>加入好友桌</h2><form data-form="join" class="stack"><label>四位数字房间码<input name="code" type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" value="${esc(new URLSearchParams(location.search).get('room')||'')}" required></label><button class="primary">加入房间</button></form><hr><p class="hint">每位玩家使用自己的浏览器身份。刷新和短暂断线后，可以回到同一座位继续。</p></section></div><section class="panel"><h2>我的对局</h2><div class="stack">${data.rooms.map(r=>`<div class="row spread"><span>${esc(r.name)} · ${esc(r.code)} · ${r.players}人 · ${{lobby:'等待开始',finished:'已结束'}[r.phase]||'进行中'}</span><button data-do="open-room" data-code="${esc(r.code)}">回到对局</button></div>`).join('')||'<p class="empty">还没有对局</p>'}</div></section><details><summary>此玩家的重连密钥</summary><div><p class="hint">仅在需要换浏览器恢复同一座位时导出。持有文件的人可以操作你的座位，请自行保管。</p><button data-do="export-session">导出重连文件</button><label>导入已有重连文件<input type="file" id="import-session" accept="application/json,.json"></label></div></details>`;
+  root.innerHTML=`<section class="panel row spread"><span class="player-name">${esc(auth.player.name)}，欢迎回来</span><button data-do="logout">退出此玩家</button></section><div class="columns"><section class="panel"><h2>创建好友桌</h2><form data-form="create" class="stack"><label>房间名称<input name="name" value="${esc(auth.player.name)}的饭店" maxlength="40" required></label><label>最多人数<select name="maxPlayers"><option value="4">4人</option><option value="3">3人</option><option value="2">2人</option></select></label><label>酒店版面<select name="hotelMode"><option value="night">标准夜面（相同酒店）</option><option value="day">不同日面（随机分配不同酒店）</option></select></label><button class="primary">创建房间</button></form></section><section class="panel"><h2>加入好友桌</h2><form data-form="join" class="stack"><label>四位数字房间码<input name="code" type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" value="${esc(new URLSearchParams(location.search).get('room')||'')}" required></label><button class="primary">加入房间</button></form><hr><p class="hint">每位玩家使用自己的浏览器身份。刷新和短暂断线后，可以回到同一座位继续。</p></section></div><section class="panel"><h2>我的对局</h2><div class="stack">${data.rooms.map(r=>`<div class="row spread"><span>${esc(r.name)} · ${esc(r.code)} · ${r.mode==='solo'?'单人':r.players+'人'} · ${{lobby:'等待开始',finished:'已结束'}[r.phase]||'进行中'}</span><button data-do="open-room" data-code="${esc(r.code)}">回到对局</button></div>`).join('')||'<p class="empty">还没有对局</p>'}</div></section><details><summary>此玩家的重连密钥</summary><div><p class="hint">仅在需要换浏览器恢复同一座位时导出。持有文件的人可以操作你的座位，请自行保管。</p><button data-do="export-session">导出重连文件</button><label>导入已有重连文件<input type="file" id="import-session" accept="application/json,.json"></label></div></details>`;
   root.insertAdjacentHTML('afterbegin',previewEntry());
+  root.insertAdjacentHTML('afterbegin',`<section class="panel solo-entry"><h2>官方单人对局</h2><p>独自挑战 Leopold，由电脑按官方指令行动。对局自动保存，可稍后继续。</p><form data-form="solo" class="controls"><label>难度<select name="difficulty"><option value="easy">简单 · 忽略银边和金边指令</option><option value="medium" selected>标准 · 加入银边指令</option><option value="hard">困难 · 执行全部指令</option></select></label><label>你的酒店<select name="hotelMode"><option value="night">经典夜面</option><option value="day">随机日面</option></select></label><button class="primary">创建单人对局</button></form></section>`);
 }
-function renderLogin(){document.body.classList.remove('is-tabletop');root.className='view-arrival';root.innerHTML=renderArrival(health,icon,{mode:entryMode,code:new URLSearchParams(location.search).get('room')||'',name:entryName});}
+function renderLogin(){displayMode.mount();document.body.classList.remove('is-tabletop');root.className='view-arrival';root.innerHTML=renderArrival(health,icon,{mode:entryMode,code:new URLSearchParams(location.search).get('room')||'',name:entryName});}
 function updateRoom(next) { if(preview)return;if(!room||next.code!==room.code||next.version>=room.version) {room=next; if(room.game.phase==='lobby')renderLobby();else renderGame();} schedulePoll(); }
 async function refreshRoom() { if(!room||preview)return; const currentCode=room.code; const next=await api(`/rooms/${currentCode}?since=${room.version}`); if(room?.code===currentCode&&!next.unchanged)updateRoom(next); }
 function schedulePoll() { clearTimeout(pollTimer); if(preview||!room||document.hidden)return; pollTimer=setTimeout(async()=>{try{if(!busy)await refreshRoom();}catch(e){failures++;status(`连接中断，正在重试（${failures}）`,true);if(e.status===401){saveAuth(null);room=null;health=await api('/health',{anonymous:true});renderLogin();return;}}schedulePoll();},Math.min(10000,2000*(failures+1))); }
 async function action(a) { if(preview){preview.state=preview.module.applyAction(preview.state,preview.seatId,a);if(preview.follow)preview.seatId=preview.module.activeSeat(preview.state);refreshPreview();return;} const current=room;const next=await api(`/rooms/${current.code}/action`,{method:'POST',body:{version:current.version,requestId:requestId(),action:a}});updateRoom(next); }
-function previewToolbar(){return `<section class="preview-toolbar"><div class="preview-heading"><span class="badge">单人画面测试</span><p>示例对局，一人控制两席。操作只在本页生效，刷新或重置后恢复。</p></div><div class="preview-controls"><label>场景<select name="previewScene">${[['showcase','饭店营业中'],['opening','新局开场'],['finale','终局计分']].map(([value,label])=>`<option value="${value}"${preview.scene===value?' selected':''}>${label}</option>`).join('')}</select></label><label>酒店版面<select name="previewBoard"><option value="night"${preview.board==='night'?' selected':''}>经典夜面</option><option value="day"${preview.board==='day'?' selected':''}>不同日面</option></select></label><label>当前视角<select name="previewSeat">${preview.state.players.map(p=>`<option value="${p.id}"${preview.seatId===p.id?' selected':''}>${esc(p.name)}的饭店</option>`).join('')}</select></label><label class="check-label"><input type="checkbox" name="previewFollow"${preview.follow?' checked':''}>自动跟随回合</label><button data-do="preview-reset">${icon('reset')} 重置场景</button>${!isMyTurn()&&room.game.phase!=='finished'?'<button data-do="preview-follow">接管当前回合</button>':''}</div></section>`;}
+function previewToolbar(){return `<section class="preview-toolbar"><div class="preview-heading"><span class="badge">单人画面测试</span><p>示例对局，一人控制两席。操作只在本页生效，刷新或重置后恢复。</p></div><div class="preview-controls"><label>场景<select name="previewScene">${[['showcase','饭店营业中'],['opening','新局开场'],['overview','满座与全员总览'],['finale','终局计分']].map(([value,label])=>`<option value="${value}"${preview.scene===value?' selected':''}>${label}</option>`).join('')}</select></label><label>酒店版面<select name="previewBoard"><option value="night"${preview.board==='night'?' selected':''}>经典夜面</option><option value="day"${preview.board==='day'?' selected':''}>不同日面</option></select></label><label>当前视角<select name="previewSeat">${preview.state.players.map(p=>`<option value="${p.id}"${preview.seatId===p.id?' selected':''}>${esc(p.name)}的饭店</option>`).join('')}</select></label><label class="check-label"><input type="checkbox" name="previewFollow"${preview.follow?' checked':''}>自动跟随回合</label><button data-do="preview-reset">${icon('reset')} 重置场景</button>${!isMyTurn()&&room.game.phase!=='finished'?'<button data-do="preview-follow">接管当前回合</button>':''}</div></section>`;}
 function refreshPreview(){room={code:'PREVIEW',version:0,game:preview.module.viewGame(preview.state,preview.seatId)};status('单人画面测试');renderGame();}
 async function openPreview(scene='showcase',board='night'){
   const url=new URL(location.href);url.searchParams.set('preview','1');history.replaceState(null,'',url);
@@ -174,11 +181,12 @@ function readResolve(form) {
   return a;
 }
 root.addEventListener('submit',event=>{
-  const form=event.target;if(!(form instanceof HTMLFormElement))return;event.preventDefault();
+  const form=event.target;if(!(form instanceof HTMLFormElement)||form.matches('[data-table-clock]'))return;event.preventDefault();
   task(async()=>{const d=new FormData(form);switch(form.dataset.form){
     case 'setup':if(d.get('password')!==d.get('confirmPassword'))throw new Error('两次密码不一致');await api('/setup',{method:'POST',body:{password:d.get('password')},anonymous:true});health=await api('/health',{anonymous:true});renderLogin();flash('访问密码已保存，请登录。');break;
     case 'login':saveAuth(await api('/login',{method:'POST',body:{name:d.get('name'),password:d.get('password')},anonymous:true}));if(new URLSearchParams(location.search).get('preview')==='1')await openPreview();else await renderHome();break;
     case 'room-login':{const {room:next,...session}=await api('/room-login',{method:'POST',body:{name:d.get('name'),code:d.get('code')},anonymous:true});saveAuth(session);const url=new URL(location.href);url.searchParams.delete('preview');url.searchParams.set('room',next.code);history.replaceState(null,'',url);updateRoom(next);break;}
+    case 'solo':updateRoom(await api('/rooms',{method:'POST',body:{name:`${auth.player.name}对阵Leopold`,mode:'solo',difficulty:d.get('difficulty'),hotelMode:d.get('hotelMode')}}));break;
     case 'create':updateRoom(await api('/rooms',{method:'POST',body:{name:d.get('name'),maxPlayers:Number(d.get('maxPlayers')),hotelMode:d.get('hotelMode')}}));break;
     case 'join':updateRoom(await api(`/rooms/${String(d.get('code')).trim().toUpperCase()}/join`,{method:'POST',body:{}}));break;
     case 'resolve':await action(readResolve(form));break;

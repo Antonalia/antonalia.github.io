@@ -1,5 +1,7 @@
 import { randomInt } from 'node:crypto';
 import { STAFF, GUESTS, HOTELS, OBJECTIVES, EMPERORS, EMPEROR_VP, GROUP_BONUS } from './catalog.mjs';
+import {applyTableAction,viewTableControls,advanceTableClock,synchronizeAutomaticClock} from './table-session.mjs';
+import {SOLO_LEVELS,initializeSolo,runSolo,soloView} from './automa.mjs';
 
 export const RESOURCES = ['strudel', 'cake', 'wine', 'coffee'];
 export const LABELS = { strudel: '苹果卷', cake: '蛋糕', wine: '葡萄酒', coffee: '咖啡', red: '红', blue: '蓝', yellow: '黄', green: '绿' };
@@ -14,14 +16,18 @@ export const shuffle = (xs, rng = randomInt) => {
   for (let i = result.length - 1; i > 0; i--) { const j = rng(i + 1); [result[i], result[j]] = [result[j], result[i]]; }
   return result;
 };
-export function newLobby(host, { name = '好友饭店', maxPlayers = 4, hotelMode = 'night' } = {}) {
+export function newLobby(host, { name = '好友饭店', maxPlayers = 4, hotelMode = 'night', mode='friends', difficulty='medium' } = {}) {
+  assert(['friends','solo'].includes(mode),'未知对局模式');
+  assert(mode!=='solo'||Object.hasOwn(SOLO_LEVELS,difficulty),'未知单人难度');
+  if(mode==='solo')maxPlayers=2;
   assert(int(maxPlayers, 2, 4), '人数必须为 2–4 人');
   assert(['night', 'day'].includes(hotelMode), '未知酒店版面');
   return { rules: 'retail-2021', phase: 'lobby', name: String(name).trim().slice(0, 40) || '好友饭店', hostId: host.id,
-    maxPlayers, hotelMode, players: [{ id: host.id, name: host.name }], log: [], revision: 0, promptSerial: 0 };
+    maxPlayers, hotelMode, ...(mode==='solo'?{solo:{difficulty}}:{}), players: [{ id: host.id, name: host.name },...mode==='solo'?[{id:'automa-leopold',name:'Leopold',bot:true}]:[]], log: [], revision: 0, promptSerial: 0 };
 }
 export function joinLobby(state, player) {
   if (state.players.some(p => p.id === player.id)) return state;
+  assert(!state.solo,'单人对局不能加入其他玩家');
   assert(state.phase === 'lobby', '对局已开始，只有原玩家可以重新连接');
   assert(state.players.length < state.maxPlayers, '房间已满');
   const s = structuredClone(state); s.players.push({ id: player.id, name: player.name }); return s;
@@ -121,21 +127,25 @@ export function startGame(state, actor, rng = randomInt) {
   assert(state.players.length >= 2, '至少需要两位玩家');
   const s = structuredClone(state);
   const hotelIds=shuffle(['day1','day2','day3','day4'],rng);
-  s.players = shuffle(s.players, rng).map((p, i) => ({ ...p, money: 10, emperor: 0, vp: 0,
+  s.players = (s.solo?[...s.players].sort((a,b)=>Number(!!b.bot)-Number(!!a.bot)):shuffle(s.players, rng)).map((p, i) => ({ ...p, money: 10, emperor: 0, vp: 0,
     kitchen: Object.fromEntries(RESOURCES.map(r => [r, 1])), cafe: [], hand: [], staff: [], completed: [], bonuses: [],
-    hotelId:s.hotelMode==='night'?'night':hotelIds[i],
-    rooms: structuredClone(HOTELS[s.hotelMode === 'night' ? 'night' : hotelIds[i]]).map(x => ({ ...x, state: 'closed' })) }));
+    hotelId:p.bot||s.hotelMode==='night'?'night':hotelIds[i],
+    rooms: structuredClone(HOTELS[p.bot||s.hotelMode === 'night' ? 'night' : hotelIds[i]]).map(x => ({ ...x, state: 'closed' })) }));
   s.guestDeck = shuffle(GUESTS.map(x => x.id), rng); s.guestDiscard = [];
   s.staffDeck = shuffle(STAFF.map(x => x.id), rng); s.market = s.guestDeck.splice(0, 5);
-  for (const p of s.players) p.hand = drawStaff(s, 6);
+  if(s.solo)initializeSolo(s,rng,{shuffle,staffById});
+  else for (const p of s.players) p.hand = drawStaff(s, 6);
   s.objectives = ['A', 'B', 'C'].map(category => ({ ...shuffle(OBJECTIVES.filter(x => x.category === category), rng)[0], claimed: [] }));
   s.emperors = ['A', 'B', 'C'].map(category => shuffle(EMPERORS.filter(x => x.category === category), rng)[0]);
   s.startIndex = 0; s.round = 1; s.effects = []; s.afterEffects = null; s.turn = null;
-  s.phase = 'setupGuest'; s.setupOrder = s.players.map(p => p.id).reverse(); s.setupIndex = 0;
+  s.phase = 'setupGuest'; s.setupOrder = s.players.filter(p=>!p.bot).map(p => p.id).reverse(); s.setupIndex = 0;
+  if(s.solo){queue(s,s.players.find(p=>!p.bot),[{kind:'soloDraft',drawn:s.solo.initialStaff}]);delete s.solo.initialStaff;}
   log(s, '2021 基础版开始：逆序选择起始客人，然后准备起始房间。');
+  if(s.solo)log(s,`官方单人模式 · Leopold（${SOLO_LEVELS[s.solo.difficulty]}）：先从10张员工中保留6张。`);
   return s;
 }
 function beginRound(s) {
+  s.roundPlayStarted=false;
   s.phase = 'turn';
   s.dice = Array.from({ length: s.players.length * 2 + 6 }, () => randomInt(6) + 1);
   const order = Array.from({ length: s.players.length }, (_, n) => s.players[(s.startIndex + n) % s.players.length].id);
@@ -168,6 +178,7 @@ function endRound(s) {
     s.phase = 'emperor'; s.effects = [];
     for (let n = 0; n < s.players.length; n++) {
       const p = s.players[(s.startIndex + n) % s.players.length];
+      if(p.bot)continue; // Automa scores/retreats normally, but ignores all tile rewards and penalties.
       const es = p.emperor >= 3 ? [...tile.reward, ...(has(p,'gardener') ? [{kind:'vp',amount:5}] : [])] : p.emperor === 0 ? has(p,'conference_manager') && p.money >= 1 ? [{kind:'conference',penalties:tile.penalty}] : tile.penalty : [];
       s.effects.push(...es.map(x => ({ ...x, playerId: p.id, uid: nextUid(s) })));
     }
@@ -204,7 +215,7 @@ function nextRound(s) {
       p.score = { duringGame: p.vp, staff, rooms, goods, cash, cafe, total: p.vp + staff + rooms + goods + cash + cafe, tieBreaker: goods + cash };
     }
     const ranking=[...s.players].sort((a,b)=>b.score.total-a.score.total||b.score.tieBreaker-a.score.tieBreaker),best=ranking[0].score;
-    s.winners=ranking.filter(p=>p.score.total===best.total&&p.score.tieBreaker===best.tieBreaker).map(p=>p.id);
+    s.winners=s.solo?[s.players.find(p=>!p.bot).score.total>s.players.find(p=>p.bot).score.total?s.hostId:s.players.find(p=>p.bot).id]:ranking.filter(p=>p.score.total===best.total&&p.score.tieBreaker===best.tieBreaker).map(p=>p.id);
     s.phase = 'finished'; log(s, '七轮结束，已完成终局计分。');
   } else { s.round++; s.startIndex = (s.startIndex + 1) % s.players.length; beginRound(s); }
 }
@@ -305,11 +316,15 @@ function resolve(s, p, a) {
   const e = s.effects[0]; assert(e && e.uid === a.promptId && e.playerId === p.id, '待处理效果已经变化，请刷新');
   s.effects.shift();
   if (a.skip) {
-    assert(e.kind !== 'penalty', '皇帝处罚不能跳过');
+    assert(e.kind !== 'penalty'&&e.kind!=='soloDraft', '处罚或起始员工选择不能跳过');
     if(e.kind==='conference'){queue(s,p,e.penalties);return;}
     if (e.drawn) returnStaff(s,e.drawn,a.returnOrder); return;
   }
-  if (e.kind === 'goods') {
+  if(e.kind==='soloDraft'){
+    assert(Array.isArray(a.cards)&&a.cards.length===6&&new Set(a.cards).size===6&&a.cards.every(id=>e.drawn.includes(id)),'请选择六张起始员工');
+    assert(a.returnOrder===undefined||Array.isArray(a.returnOrder),'归还顺序必须为牌号列表');
+    p.hand=[...a.cards];returnStaff(s,e.drawn.filter(id=>!a.cards.includes(id)),a.returnOrder?.filter(id=>!a.cards.includes(id)));
+  } else if (e.kind === 'goods') {
     const counts = a.counts || e.counts;
     assert(counts && RESOURCES.every(r => int(counts[r] || 0, 0, 50)), '食饮数量无效');
     if (!e.counts) {
@@ -344,11 +359,23 @@ function resolve(s, p, a) {
     }
   } else throw new Error(`尚未实现的效果 ${e.kind}`);
 }
-export function applyAction(state, playerId, action) {
+export function applyAction(state,playerId,action,{now=Date.now(),rng=randomInt}={}){
+  assert(!state.players.find(p=>p.id===playerId)?.bot,'自动对手不能由客户端操作');
+  let next=applyTableAction(state,playerId,action,{applyRule:(s,id,a)=>applyRuleAction(s,id,a,rng),now,rng});
+  // The one human may use table tools without waiting for a non-human vote.
+  if(next.solo&&next.tableSession?.pending){const bot=next.players.find(p=>p.bot);next=applyTableAction(next,bot.id,{type:'table-vote',proposalId:next.tableSession.pending.id,approve:true},{applyRule:applyRuleAction,now,rng});}
+  return settleSolo(next,rng,now);
+}
+function settleSolo(s,rng=randomInt,now=Date.now()){
+  if(!s.solo||s.phase!=='turn'||s.effects.length||!s.players.find(p=>p.id===s.turn?.playerId)?.bot)return s;
+  return synchronizeAutomaticClock(runSolo(structuredClone(s),{rng,shuffle,guestById,drawGuest,addEmperor,finishTurn,log}),now);
+}
+export function advanceTableTime(state,{now=Date.now()}={}){return settleSolo(advanceTableClock(state,{applyRule:applyRuleAction,now}),randomInt,now);}
+function applyRuleAction(state, playerId, action, rng=randomInt) {
   const s = structuredClone(state), p = me(s, playerId); assert(action && typeof action.type === 'string', '缺少操作');
-  if (action.type === 'start') return startGame(s, playerId);
+  if (action.type === 'start') return startGame(s, playerId,rng);
   if (action.type === 'kick') {
-    assert(s.phase === 'lobby' && s.hostId === playerId && action.playerId !== playerId, '只有房主可以在大厅移除其他玩家');
+    assert(!s.solo&&s.phase === 'lobby' && s.hostId === playerId && action.playerId !== playerId, '只有好友桌房主可以在大厅移除其他玩家');
     s.players = s.players.filter(x => x.id !== action.playerId); return s;
   }
   assert(s.phase !== 'lobby' && s.phase !== 'finished', '当前阶段不能执行此操作');
@@ -356,7 +383,7 @@ export function applyAction(state, playerId, action) {
   if (s.effects.length) { assert(action.type === 'resolve', '请先处理待选奖励或处罚'); resolve(s, p, action); advanceEffects(s); return s; }
   if (s.phase === 'setupGuest') {
     assert(action.type === 'setupGuest', '请选择起始客人'); takeGuest(s, p, action.index, true);
-    s.setupIndex++; if (s.setupIndex === s.setupOrder.length) { s.phase = 'setupRooms'; s.setupIndex = 0; s.setupOrder = s.players.map(x => x.id); } return s;
+    s.setupIndex++; if (s.setupIndex === s.setupOrder.length) { s.phase = 'setupRooms'; s.setupIndex = 0; s.setupOrder = s.players.filter(x=>!x.bot).map(x => x.id); } return s;
   }
   if (s.phase === 'setupRooms') {
     assert(action.type === 'setupRooms' && Array.isArray(action.rooms) && action.rooms.length <= 3 && new Set(action.rooms).size === action.rooms.length, '请选择最多三间相邻起始房，顺序从左下开始');
@@ -364,6 +391,7 @@ export function applyAction(state, playerId, action) {
     s.setupIndex++; if (s.setupIndex === s.setupOrder.length) beginRound(s); return s;
   }
   assert(s.phase === 'turn', '当前不在行动阶段');
+  if(action.type==='__clock-expire'){finishTurn(s);return s;}
   if (action.type === 'pass') {
     assert(!s.turn.touched && !s.turn.dieTaken && !s.turn.guestTaken, '已经执行动作，不能再跳过');
     for(const slot of s.slots)if(slot.playerId===p.id && !slot.done)slot.passed=true; log(s, `${p.name}暂时跳过，保留行动机会。`); beginNextTurn(s); return s;
@@ -395,13 +423,13 @@ function cardStaff(id) { return structuredClone(staffById[id]); }
 function cardGuest(g) { const instance=typeof g==='object'&&g!==null; return g ? { ...structuredClone(guestById[instance ? g.id : g]), ...(instance ? { uid:g.uid,served:{...g.served},complete:isComplete(g) } : {}) } : null; }
 export function viewGame(s, playerId) {
   assert(s.players.some(x => x.id === playerId), '你不是本局成员');
-  if (s.phase === 'lobby') return { rules: s.rules, phase: s.phase, name: s.name, hostId: s.hostId, maxPlayers: s.maxPlayers, hotelMode: s.hotelMode, players: s.players.map(p => ({ id: p.id, name: p.name })), log: s.log };
+  if (s.phase === 'lobby') return { rules: s.rules, phase: s.phase, name: s.name, hostId: s.hostId, maxPlayers: s.maxPlayers, hotelMode: s.hotelMode,solo:soloView(s), players: s.players.map(p => ({ id: p.id, name: p.name,bot:p.bot })), log: s.log,tableControls:viewTableControls(s,playerId) };
   const prompt = s.effects[0];
-  return { rules: s.rules, phase: s.phase, name: s.name, hostId: s.hostId, round: s.round,winners:s.winners, activePlayerId: activePlayer(s),
+  return { rules: s.rules, phase: s.phase, name: s.name, hostId: s.hostId, round: s.round,solo:soloView(s),winners:s.winners, activePlayerId: activePlayer(s),tableControls:viewTableControls(s,playerId),
     market: s.market.map(cardGuest), dice: [...(s.dice || [])], slots: s.slots || [], turn: s.turn, guestDeckCount: s.guestDeck.length, staffDeckCount: s.staffDeck.length,
-    objectives: s.objectives.map(o => ({ ...o, eligible: o.claimed.length<3 && objectiveMet(me(s, playerId), o.condition) })), emperors: s.emperors,
+    objectives: s.objectives.map(o => ({ ...o, eligible: o.claimed.length<3 && objectiveMet(me(s, playerId), o.condition), achievedBy: s.players.filter(player => player.bot?o.claimed.includes(player.id):objectiveMet(player, o.condition)).map(player => player.id) })), emperors: s.emperors,
     prompt: prompt ? prompt.playerId === playerId ? { ...prompt, drawn: prompt.drawn?.map(cardStaff) } : { playerId: prompt.playerId, waiting: true } : null,
-    players: s.players.map(p => ({ id: p.id, name: p.name,hotelId:p.hotelId, money: p.money, emperor: p.emperor, vp: p.vp, kitchen: p.kitchen, rooms: p.rooms, cafe: p.cafe.map(cardGuest),
+    players: s.players.map(p => ({ id: p.id, name: p.name,bot:p.bot,hotelId:p.hotelId, money: p.money, emperor: p.emperor, vp: p.vp, kitchen: p.kitchen, rooms: p.rooms, cafe: p.cafe.map(cardGuest),
       staff: p.staff.map(c => ({ ...cardStaff(c.id), usedRound: c.usedRound })), handCount: p.hand.length, hand: p.id === playerId ? p.hand.map(cardStaff) : undefined,
       bonuses: p.bonuses, completedCount: p.completed.length, score: p.score })), log: s.log };
 }

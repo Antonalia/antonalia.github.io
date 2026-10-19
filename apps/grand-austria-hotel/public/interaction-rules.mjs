@@ -32,7 +32,7 @@ export function selectableRooms(player,e,selected=[],checkinGuest=null){
   }).map(r=>r.id);
 }
 export function turnIdentity(g,code,playerId){return [code,g.round,g.phase,g.activePlayerId,g.turn?.number,playerId].join(':');}
-export function shouldOfferGuest(g,p){return g.activePlayerId===p.id&&!g.prompt&&(g.phase==='setupGuest'||g.phase==='turn'&&!g.turn?.dieTaken&&!g.turn?.guestTaken);}
+export function shouldOfferGuest(g,p){return !g.tableControls?.pending&&p.cafe.length<3&&g.activePlayerId===p.id&&!g.prompt&&(g.phase==='setupGuest'||g.phase==='turn'&&!g.turn?.dieTaken&&!g.turn?.guestTaken);}
 
 export function draftGuest(g,index){const card=g.market[index];return card?{index,guestId:card.id}:null;}
 export function guestSelection(g,p,draft){

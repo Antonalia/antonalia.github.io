@@ -31,3 +31,14 @@ test('prefixed Safari fullscreen calls keep their document/element receiver',asy
   f.doc.webkitExitFullscreen=function(){assert.equal(this,f.doc);this.webkitFullscreenElement=null;this.dispatchEvent(new Event('webkitfullscreenchange'));};
   const mode=initDisplayMode(f.doc);await mode.toggle();assert.ok(f.classes.has('display-active'));await mode.toggle();assert.ok(!f.classes.has('display-active'));mode.dispose();
 });
+
+test('repainting the game header moves the same fullscreen control and preserves its state and listener',()=>{
+  const f=fixture(),home={append(node){node.parentElement=this;}},first={append:home.append},redrawn={append:home.append};
+  const controls={parentElement:home};f.nodes['display-controls']=controls;
+  const mode=initDisplayMode(f.doc);mode.mount(first);assert.equal(controls.parentElement,first);
+  f.nodes['toggle-fullscreen'].dispatchEvent(new Event('click'));assert.ok(f.classes.has('display-active'));
+  mode.mount(redrawn,{hidden:true});assert.equal(controls.parentElement,redrawn);assert.equal(controls.hidden,true);assert.equal(f.nodes['toggle-fullscreen'].attrs['aria-pressed'],'true');
+  mode.mount(redrawn);assert.equal(controls.hidden,false);
+  f.nodes['toggle-fullscreen'].dispatchEvent(new Event('click'));assert.ok(!f.classes.has('display-active'));
+  mode.mount();assert.equal(controls.parentElement,home);mode.dispose();
+});

@@ -6,6 +6,8 @@
 - [官方2021众筹版说明书及员工附录](https://www.lookout-spiele.de/upload/de_gah_deluxe_crowdfunding.html_GAH_Regeln_EN_WEB.pdf)
 - [Yucata公开规则与线上版本](https://www.yucata.de/en/Rules/GrandAustria)
 - [Yucata游戏资料与制作信息](https://www.yucata.de/en/GameInfo/GrandAustria)
+- [Lookout官方单人模式 Dinner for One](https://www.lookout-spiele.de/upload/GAH_AutomaRegeln_EN_WEB.pdf)
+- [brdgm单人辅助项目](https://github.com/brdgm/grand-austria-hotel-solo-helper)：Apache-2.0，用于交叉核对193–212指令牌的机械事实和难度图标；本项目独立编写自动行动，不复用其界面与美术。
 
 `reference/research-notes.md`记录了逐项核验、旧版差异与其他开源参考。未复用Yucata实现代码、界面样式或游戏美术；下载的规则PDF和卡图仅留在忽略提交的资料目录，不进入`public/`、`dist/`或博客。
 

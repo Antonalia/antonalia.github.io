@@ -1,4 +1,4 @@
-import { newLobby, joinLobby, applyAction, viewGame } from './game.mjs';
+import { newLobby, joinLobby, applyAction, viewGame,advanceTableTime } from './game.mjs';
 import { token, digest, hashPassword, verifyPassword, RateLimiter } from './auth.mjs';
 import { randomInt } from 'node:crypto';
 
@@ -19,6 +19,16 @@ export function createApi({ store, passwordHash, allowLocalSetup = false, allowe
   function publicRoom(room, id) { return { code: room.code, version: room.version, updatedAt: room.updatedAt, game: viewGame(room.game, id) }; }
   const roomIdentity = room => room.instanceId || String(room.createdAt);
   const publicSession = (rawToken, session) => ({ token: rawToken, player: { id: session.id, name: session.name }, expiresAt: session.expiresAt, access: session.access || 'admin' });
+  async function settleClock(room){
+    const identity=roomIdentity(room);
+    for(let attempt=0;attempt<4;attempt++){
+      const game=advanceTableTime(room.game);if(game===room.game)return room;
+      const next={...room,game,version:room.version+1,updatedAt:Date.now(),expiresAt:Date.now()+TTL};
+      if(await store.saveRoom(next,room.version))return next;
+      room=await store.room(room.code);if(!room||roomIdentity(room)!==identity||room.expiresAt<=Date.now())invalid('房间不存在或已经过期',404);
+    }
+    invalid('对局正在更新，请重试',409);
+  }
   async function joinRoom(room, session) {
     const identity = roomIdentity(room);
     for (let i = 0; i < 4; i++) {
@@ -102,6 +112,7 @@ export function createApi({ store, passwordHash, allowLocalSetup = false, allowe
         send(200, publicRoom(room, session.id)); return;
       }
       if (!room.game.players.some(p => p.id === session.id)) invalid('你不是这个房间的成员', 403);
+      room=await settleClock(room);
       if (!operation && req.method === 'GET') {
         if (url.searchParams.get('since') === String(room.version)) send(200, { unchanged: true, version: room.version }); else send(200, publicRoom(room, session.id)); return;
       }

@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { makePreview,applyAction,viewGame,activeSeat } from '../preview-src/preview.mjs';
 
-for(const board of ['night','day'])for(const scene of ['opening','showcase','finale'])test(`单人示例 ${board}/${scene} 可直接进入，手牌与卡牌保持唯一`,()=>{
-  const s=makePreview(scene,board),v=viewGame(s,s.players[0].id);assert.equal(v.players.length,2);assert.equal(s.phase,scene==='finale'?'finished':'turn');
+for(const board of ['night','day'])for(const scene of ['opening','showcase','finale','overview'])test(`单人示例 ${board}/${scene} 可直接进入，手牌与卡牌保持唯一`,()=>{
+  const s=makePreview(scene,board),v=viewGame(s,s.players[0].id);assert.equal(v.players.length,scene==='overview'?4:2);assert.equal(s.phase,scene==='finale'?'finished':'turn');
   assert.equal(s.effects.length,0);assert.equal(v.players[0].hand.length,6);
+  if(scene!=='finale')assert.equal(s.dice.length,v.players.length*2+6);
   const guests=[...s.market,...s.guestDeck,...s.players.flatMap(p=>p.cafe.map(c=>c.id))];assert.equal(new Set(guests).size,56);
   const staff=[...s.staffDeck,...s.players.flatMap(p=>[...p.hand,...p.staff.map(c=>c.id)])];assert.equal(staff.length,48);assert.equal(new Set(staff).size,48);
   if(scene==='finale')assert.ok(v.players.every(p=>Number.isFinite(p.score.total)));
