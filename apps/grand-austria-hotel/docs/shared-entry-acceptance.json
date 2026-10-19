@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-19T03:27:40.240Z",
+  "origin": "https://grand-austria-hotel.vercel.app",
+  "checks": [
+    "specified administrator password accepted; old random password rejected",
+    "new room codes contain exactly four digits",
+    "room code joins without password and grants only that room",
+    "invalid or full invitations rejected; refresh retains one seat",
+    "invited player completes setup, receives hidden-hand filtering and synced actions",
+    "real Neon expired-code reuse prevents an old request overwriting the replacement"
+  ]
+}

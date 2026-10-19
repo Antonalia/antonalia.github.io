@@ -2,7 +2,7 @@
 
 用户已授权发布GitHub页面并新建游戏专用Vercel与Neon。2026-10-19已部署API `https://grand-austria-hotel.vercel.app`，使用独立Neon项目`gentle-band-89164349`；原Waline项目`icy-lab-00585924`保持独立。受限LOGIN角色`hotel_game_login`只继承`hotel_player_api`，不具备Neon管理员、建库或建角色权限。实际公网HTTP验收记录见`cloud-acceptance.json`。
 
-公网访问密码为新生成的独立强密码，本机`.private/公网游戏访问.txt`保存可分享给好友的入口与密码；本地博客密码和原存档没有迁移。`.private/`和环境文件明确排除在Git导出、静态构建及Vercel上传之外。以下步骤用于以后维护或重新部署。
+公网统一管理员密码按用户指定值配置，仅在Vercel保存scrypt哈希，不写入仓库或静态页面。好友使用四位数字房间码加入对应房间，无需获知管理员密码。原本地存档没有迁移。`.private/`和环境文件明确排除在Git导出、静态构建及Vercel上传之外。以下步骤用于以后维护或重新部署。
 
 ## 后端：专用Vercel与Neon
 

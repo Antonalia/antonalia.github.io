@@ -4,7 +4,7 @@ const scrypt = promisify(scryptCallback);
 export const token = (bytes = 32) => randomBytes(bytes).toString('base64url');
 export const digest = value => createHash('sha256').update(value).digest('hex');
 export async function hashPassword(password) {
-  if (typeof password !== 'string' || password.length < 12 || password.length > 200) throw Object.assign(new Error('访问密码需要 12–200 个字符'), { status: 400 });
+  if (typeof password !== 'string' || password.length < 9 || password.length > 200) throw Object.assign(new Error('管理员密码需要 9–200 个字符'), { status: 400 });
   const salt = randomBytes(16).toString('hex');
   return `scrypt$${salt}$${(await scrypt(password, salt, 64)).toString('hex')}`;
 }

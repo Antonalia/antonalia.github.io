@@ -24,8 +24,8 @@ export class LocalStore {
   async deleteSession(hash) { return this.mutate(d => { delete d.sessions[hash]; }); }
   async room(code) { await this.tail; await this.load(); return structuredClone(this.data.rooms[code] || null); }
   async rooms(playerId) { await this.tail; await this.load(); return Object.values(this.data.rooms).filter(r => r.expiresAt > Date.now() && r.game.players.some(p => p.id === playerId)).map(r => ({ code: r.code, name: r.game.name, phase: r.game.phase, players: r.game.players.length, updatedAt: r.updatedAt })); }
-  async createRoom(room) { return this.mutate(d => { if (d.rooms[room.code]) return false; const now = Date.now(); for (const [key, value] of Object.entries(d.rooms)) if (value.expiresAt < now) delete d.rooms[key]; d.rooms[room.code] = room; return true; }); }
-  async saveRoom(room, previousVersion) { return this.mutate(d => { if (d.rooms[room.code]?.version !== previousVersion) return false; d.rooms[room.code] = room; return true; }); }
+  async createRoom(room) { return this.mutate(d => { const now = Date.now(); for (const [key, value] of Object.entries(d.rooms)) if (value.expiresAt <= now) delete d.rooms[key]; if (d.rooms[room.code]) return false; d.rooms[room.code] = room; return true; }); }
+  async saveRoom(room, previousVersion) { return this.mutate(d => { const current=d.rooms[room.code]; if (!current || current.version !== previousVersion || (current.instanceId || current.createdAt) !== (room.instanceId || room.createdAt)) return false; d.rooms[room.code] = room; return true; }); }
 }
 
 export class NeonStore {
@@ -42,9 +42,9 @@ export class NeonStore {
     return rows;
   }
   async createRoom(room) {
-    const q = await this.sql(); const rows = await q`INSERT INTO hotel.rooms(code,data,version,updated_at,expires_at) VALUES(${room.code},${JSON.stringify(room)}::jsonb,${room.version},now(),${new Date(room.expiresAt).toISOString()}::timestamptz) ON CONFLICT DO NOTHING RETURNING code`; return rows.length > 0;
+    const q = await this.sql(); const rows = await q`INSERT INTO hotel.rooms(code,data,version,updated_at,expires_at) VALUES(${room.code},${JSON.stringify(room)}::jsonb,${room.version},now(),${new Date(room.expiresAt).toISOString()}::timestamptz) ON CONFLICT(code) DO UPDATE SET data=EXCLUDED.data,version=EXCLUDED.version,updated_at=EXCLUDED.updated_at,expires_at=EXCLUDED.expires_at WHERE hotel.rooms.expires_at <= now() RETURNING code`; return rows.length > 0;
   }
   async saveRoom(room, previousVersion) {
-    const q = await this.sql(); const rows = await q`UPDATE hotel.rooms SET data=${JSON.stringify(room)}::jsonb, version=${room.version}, updated_at=now(), expires_at=${new Date(room.expiresAt).toISOString()}::timestamptz WHERE code=${room.code} AND version=${previousVersion} RETURNING code`; return rows.length > 0;
+    const q = await this.sql(),identity=room.instanceId || (room.createdAt===undefined?null:String(room.createdAt)); const rows = await q`UPDATE hotel.rooms SET data=${JSON.stringify(room)}::jsonb, version=${room.version}, updated_at=now(), expires_at=${new Date(room.expiresAt).toISOString()}::timestamptz WHERE code=${room.code} AND version=${previousVersion} AND coalesce(data->>'instanceId',data->>'createdAt') IS NOT DISTINCT FROM ${identity} RETURNING code`; return rows.length > 0;
   }
 }

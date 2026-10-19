@@ -1,5 +1,6 @@
 import { newLobby, joinLobby, applyAction, viewGame } from './game.mjs';
 import { token, digest, hashPassword, verifyPassword, RateLimiter } from './auth.mjs';
+import { randomInt } from 'node:crypto';
 
 const TTL = 7 * 24 * 60 * 60 * 1000;
 const invalid = (message, status = 400) => { const e = new Error(message); e.status = status; throw e; };
@@ -16,6 +17,18 @@ async function jsonBody(req) {
 export function createApi({ store, passwordHash, allowLocalSetup = false, allowedOrigins = [], trustedProxy = false, rateLimiter = new RateLimiter() }) {
   async function configuredHash() { return passwordHash || await store.setting('passwordHash'); }
   function publicRoom(room, id) { return { code: room.code, version: room.version, updatedAt: room.updatedAt, game: viewGame(room.game, id) }; }
+  const roomIdentity = room => room.instanceId || String(room.createdAt);
+  const publicSession = (rawToken, session) => ({ token: rawToken, player: { id: session.id, name: session.name }, expiresAt: session.expiresAt, access: session.access || 'admin' });
+  async function joinRoom(room, session) {
+    const identity = roomIdentity(room);
+    for (let i = 0; i < 4; i++) {
+      if (!room || room.expiresAt <= Date.now() || roomIdentity(room) !== identity) invalid('房间不存在或已经过期', 404);
+      const next = { ...room, game: joinLobby(room.game, session), version: room.version + 1, updatedAt: Date.now(), expiresAt: Date.now() + TTL };
+      if (await store.saveRoom(next, room.version)) return next;
+      room = await store.room(room.code);
+    }
+    invalid('房间正在更新，请重试', 409);
+  }
   return async function api(req, res) {
     res.setHeader('Cache-Control', 'no-store'); res.setHeader('X-Content-Type-Options', 'nosniff'); res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -43,39 +56,50 @@ export function createApi({ store, passwordHash, allowLocalSetup = false, allowe
       if (path === '/api/login' && req.method === 'POST') {
         if (!rateLimiter.take(`login:${ip}`, 8)) invalid('密码尝试过于频繁，请一分钟后重试', 429);
         const body = await jsonBody(req), name = cleanName(body.name);
-        if (!await verifyPassword(body.password, await configuredHash())) invalid('访问密码不正确，或尚未在本机设置', 401);
-        const rawToken = token(), session = { id: token(12), name, expiresAt: Date.now() + TTL };
+        if (!await verifyPassword(body.password, await configuredHash())) invalid('管理员密码不正确，或尚未设置', 401);
+        const rawToken = token(), session = { id: token(12), name, expiresAt: Date.now() + TTL, access: 'admin' };
         await store.createSession(digest(rawToken), session);
-        send(200, { token: rawToken, player: { id: session.id, name }, expiresAt: session.expiresAt }); return;
+        send(200, publicSession(rawToken, session)); return;
+      }
+      if (path === '/api/room-login' && req.method === 'POST') {
+        if (!rateLimiter.take(`login:${ip}`, 8)) invalid('入口尝试过于频繁，请一分钟后重试', 429);
+        const body = await jsonBody(req), name = cleanName(body.name), code = String(body.code || '').trim();
+        if (!/^\d{4}$/.test(code)) invalid('请输入四位数字房间码');
+        let room = await store.room(code);
+        if (!room || room.expiresAt <= Date.now()) invalid('房间码无效或已经过期', 401);
+        const rawToken = token(), hash = digest(rawToken), session = { id: token(12), name, expiresAt: Date.now() + TTL, access: 'room', roomCode: code, roomId: roomIdentity(room) };
+        await store.createSession(hash, session);
+        try { room = await joinRoom(room, session); }
+        catch (error) { await store.deleteSession(hash); throw error; }
+        send(200, { ...publicSession(rawToken, session), room: publicRoom(room, session.id) }); return;
       }
       const rawToken = /^Bearer ([A-Za-z0-9_-]{40,100})$/.exec(req.headers.authorization || '')?.[1];
       const session = rawToken && await store.session(digest(rawToken));
       if (!session || session.expiresAt < Date.now()) invalid('请先输入访问密码登录', 401);
       if (!rateLimiter.take(`player:${session.id}`, 180)) invalid('操作过于频繁', 429);
-      if (path === '/api/me' && req.method === 'GET') { send(200, { player: { id: session.id, name: session.name }, rooms: await store.rooms(session.id) }); return; }
+      if (path === '/api/me' && req.method === 'GET') { send(200, { player: { id: session.id, name: session.name }, access: session.access || 'admin', roomCode: session.roomCode, rooms: (await store.rooms(session.id)).filter(room => session.access !== 'room' || room.code === session.roomCode) }); return; }
       if (path === '/api/logout' && req.method === 'POST') { await store.deleteSession(digest(rawToken)); send(200, { ok: true }); return; }
       if (path === '/api/rooms' && req.method === 'POST') {
+        if (session.access === 'room') invalid('创建房间需要统一管理员密码', 403);
         if (!rateLimiter.take(`create:${session.id}`, 5, 3600000)) invalid('每小时最多创建五个房间', 429);
         const body = await jsonBody(req);
         if ((await store.rooms(session.id)).filter(x => x.phase !== 'finished').length >= 5) invalid('最多同时保留五个未完成房间');
         for (let i = 0; i < 8; i++) {
-          const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const raw = token(8); const code = Array.from(raw.slice(0, 7), c => alphabet[c.charCodeAt(0) % alphabet.length]).join('');
-          const room = { code, version: 0, createdAt: Date.now(), updatedAt: Date.now(), expiresAt: Date.now() + TTL, requests: [], game: newLobby(session, body) };
+          const code = String(randomInt(1000, 10000));
+          const room = { code, instanceId: token(12), version: 0, createdAt: Date.now(), updatedAt: Date.now(), expiresAt: Date.now() + TTL, requests: [], game: newLobby(session, body) };
           if (await store.createRoom(room)) { send(201, publicRoom(room, session.id)); return; }
         }
         invalid('创建房间失败，请重试', 503);
       }
-      const match = /^\/api\/rooms\/([A-Z2-9]{7})(?:\/(join|action))?$/.exec(path);
+      const match = /^\/api\/rooms\/(\d{4}|[A-Z2-9]{7})(?:\/(join|action))?$/.exec(path);
       if (!match) invalid('接口不存在', 404);
       const code = match[1], operation = match[2];
+      if (session.access === 'room' && session.roomCode !== code) invalid('房间码仅用于进入对应房间', 403);
       let room = await store.room(code); if (!room || room.expiresAt < Date.now()) invalid('房间不存在或已经过期', 404);
+      if (session.access === 'room' && (session.roomId !== roomIdentity(room) || !room.game.players.some(p => p.id === session.id))) invalid('房间邀请已经失效，请重新输入房间码', 403);
       if (operation === 'join' && req.method === 'POST') {
-        for (let i = 0; i < 4; i++) {
-          const next = { ...room, game: joinLobby(room.game, session), version: room.version + 1, updatedAt: Date.now(), expiresAt: Date.now() + TTL };
-          if (await store.saveRoom(next, room.version)) { send(200, publicRoom(next, session.id)); return; }
-          room = await store.room(code);
-        }
-        invalid('房间正在更新，请重试', 409);
+        room = await joinRoom(room, session);
+        send(200, publicRoom(room, session.id)); return;
       }
       if (!room.game.players.some(p => p.id === session.id)) invalid('你不是这个房间的成员', 403);
       if (!operation && req.method === 'GET') {

@@ -12,6 +12,7 @@ const apiBase = String(window.HOTEL_API_BASE || '').replace(/\/$/,'');
 const profile = new URLSearchParams(location.search).get('profile') || 'main';
 const storageKey = `gah.session.${profile}`;
 let auth = null, room = null, busy = false, health = null, pollTimer, failures = 0, lastUpdated = 0, preview=null, previewModule;
+let entryMode=/^\d{4}$/.test(new URLSearchParams(location.search).get('room')||'')?'room':'admin',entryName='';
 const selections = new Map();
 const tabletop=createTabletop(root,{onAction:a=>task(()=>action(a)),onExit:()=>task(async()=>{if(preview)await closePreview();else await renderHome();}),onFlash:flash});
 notice.addEventListener('click',()=>flash(''));
@@ -118,19 +119,26 @@ function renderGame(){
   root.className='view-game';
   tabletop.update(room.game,me(),{room,preview,effectText,staffText,previewToolbar,copyRoom:copyRoomLink});
 }
-async function copyRoomLink(){const url=new URL(location.href);url.search='';url.searchParams.set('room',room.code);try{await navigator.clipboard.writeText(url.href);flash('好友链接已复制；请另行私下发送访问密码。');}catch{flash(`好友链接：${url.href}`);}}
+async function copyRoomLink(){const url=new URL(location.href);url.search='';url.searchParams.set('room',room.code);try{await navigator.clipboard.writeText(url.href);flash('好友链接已复制；好友填写昵称后即可凭房间码加入。');}catch{flash(`好友链接：${url.href}`);}}
 function renderLobby() {
   document.body.classList.remove('is-tabletop');
+  root.className='view-lobby';
   const g=room.game;
-  root.innerHTML=`<section class="panel"><div class="row spread"><h2>${esc(g.name)}</h2><button data-do="home">返回大厅</button></div><p>房间码 <strong class="roomcode">${esc(room.code)}</strong></p><p>把房间码或链接给好友；好友需要先输入饭店访问密码。</p><div class="player-overview">${g.players.map(p=>`<article><h3>${esc(p.name)}${p.id===g.hostId?' · 房主':''}${p.id===auth.player.id?' · 你':''}</h3>${auth.player.id===g.hostId&&p.id!==g.hostId?`<button data-do="kick" data-id="${esc(p.id)}">移出房间</button>`:''}</article>`).join('')}</div><div class="form-actions"><button data-do="copy-room">复制好友链接</button><button class="primary" data-do="start"${disabled(g.hostId!==auth.player.id||g.players.length<2)}>开始 ${g.players.length} 人对局</button></div><p class="hint">容量 ${g.maxPlayers} 人。开始后仅原玩家可重连；每位玩家应使用自己的浏览器身份。</p></section>`;
+  root.innerHTML=`<section class="panel"><div class="row spread"><h2>${esc(g.name)}</h2><button data-do="home">返回大厅</button></div><p>房间码 <strong class="roomcode">${esc(room.code)}</strong></p><p>把四位房间码或链接给好友；好友无需管理员密码。</p><div class="player-overview">${g.players.map(p=>`<article><h3>${esc(p.name)}${p.id===g.hostId?' · 房主':''}${p.id===auth.player.id?' · 你':''}</h3>${auth.player.id===g.hostId&&p.id!==g.hostId?`<button data-do="kick" data-id="${esc(p.id)}">移出房间</button>`:''}</article>`).join('')}</div><div class="form-actions"><button data-do="copy-room">复制好友链接</button><button class="primary" data-do="start"${disabled(g.hostId!==auth.player.id||g.players.length<2)}>开始 ${g.players.length} 人对局</button></div><p class="hint">容量 ${g.maxPlayers} 人。开始后仅原玩家可重连；每位玩家应使用自己的浏览器身份。</p></section>`;
 }
-async function renderHome() {
+async function renderHome({resumeRoom=false}={}) {
   document.body.classList.remove('is-tabletop');
   root.className='view-home';room=null; clearTimeout(pollTimer); const data=await api('/me');
-  root.innerHTML=`<section class="panel row spread"><span class="player-name">${esc(auth.player.name)}，欢迎回来</span><button data-do="logout">退出此玩家</button></section><div class="columns"><section class="panel"><h2>创建好友桌</h2><form data-form="create" class="stack"><label>房间名称<input name="name" value="${esc(auth.player.name)}的饭店" maxlength="40" required></label><label>最多人数<select name="maxPlayers"><option value="4">4人</option><option value="3">3人</option><option value="2">2人</option></select></label><label>酒店版面<select name="hotelMode"><option value="night">标准夜面（相同酒店）</option><option value="day">不同日面（随机分配不同酒店）</option></select></label><button class="primary">创建房间</button></form></section><section class="panel"><h2>加入好友桌</h2><form data-form="join" class="stack"><label>7位房间码<input name="code" type="text" maxlength="7" autocapitalize="characters" autocomplete="off" value="${esc(new URLSearchParams(location.search).get('room')||'')}" required></label><button class="primary">加入房间</button></form><hr><p class="hint">每位玩家使用自己的浏览器身份。刷新和短暂断线后，可以回到同一座位继续。</p></section></div><section class="panel"><h2>我的对局</h2><div class="stack">${data.rooms.map(r=>`<div class="row spread"><span>${esc(r.name)} · ${esc(r.code)} · ${r.players}人 · ${{lobby:'等待开始',finished:'已结束'}[r.phase]||'进行中'}</span><button data-do="open-room" data-code="${esc(r.code)}">回到对局</button></div>`).join('')||'<p class="empty">还没有对局</p>'}</div></section><details><summary>此玩家的重连密钥</summary><div><p class="hint">仅在需要换浏览器恢复同一座位时导出。持有文件的人可以操作你的座位，请自行保管。</p><button data-do="export-session">导出重连文件</button><label>导入已有重连文件<input type="file" id="import-session" accept="application/json,.json"></label></div></details>`;
+  saveAuth({...auth,access:data.access});
+  if(data.access==='room'){
+    if(resumeRoom&&data.rooms.length){updateRoom(await api(`/rooms/${data.rooms[0].code}`));return;}
+    root.innerHTML=`<section class="panel row spread"><span>${esc(auth.player.name)}的游戏座位</span><button data-do="logout">退出此玩家</button></section><section class="panel"><h2>受邀房间</h2>${data.rooms.map(r=>`<p>${esc(r.name)} · 房间码 <strong class="roomcode">${esc(r.code)}</strong></p><button class="primary" data-do="open-room" data-code="${esc(r.code)}">返回房间</button>`).join('')||'<p>房间已过期或座位已被移除，请退出后重新输入房间码。</p>'}<p class="hint">此入口只进入受邀房间。创建新房间请使用统一管理员密码。</p></section>`;
+    return;
+  }
+  root.innerHTML=`<section class="panel row spread"><span class="player-name">${esc(auth.player.name)}，欢迎回来</span><button data-do="logout">退出此玩家</button></section><div class="columns"><section class="panel"><h2>创建好友桌</h2><form data-form="create" class="stack"><label>房间名称<input name="name" value="${esc(auth.player.name)}的饭店" maxlength="40" required></label><label>最多人数<select name="maxPlayers"><option value="4">4人</option><option value="3">3人</option><option value="2">2人</option></select></label><label>酒店版面<select name="hotelMode"><option value="night">标准夜面（相同酒店）</option><option value="day">不同日面（随机分配不同酒店）</option></select></label><button class="primary">创建房间</button></form></section><section class="panel"><h2>加入好友桌</h2><form data-form="join" class="stack"><label>四位数字房间码<input name="code" type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" value="${esc(new URLSearchParams(location.search).get('room')||'')}" required></label><button class="primary">加入房间</button></form><hr><p class="hint">每位玩家使用自己的浏览器身份。刷新和短暂断线后，可以回到同一座位继续。</p></section></div><section class="panel"><h2>我的对局</h2><div class="stack">${data.rooms.map(r=>`<div class="row spread"><span>${esc(r.name)} · ${esc(r.code)} · ${r.players}人 · ${{lobby:'等待开始',finished:'已结束'}[r.phase]||'进行中'}</span><button data-do="open-room" data-code="${esc(r.code)}">回到对局</button></div>`).join('')||'<p class="empty">还没有对局</p>'}</div></section><details><summary>此玩家的重连密钥</summary><div><p class="hint">仅在需要换浏览器恢复同一座位时导出。持有文件的人可以操作你的座位，请自行保管。</p><button data-do="export-session">导出重连文件</button><label>导入已有重连文件<input type="file" id="import-session" accept="application/json,.json"></label></div></details>`;
   root.insertAdjacentHTML('afterbegin',previewEntry());
 }
-function renderLogin(){document.body.classList.remove('is-tabletop');root.className='view-arrival';root.innerHTML=renderArrival(health,icon);}
+function renderLogin(){document.body.classList.remove('is-tabletop');root.className='view-arrival';root.innerHTML=renderArrival(health,icon,{mode:entryMode,code:new URLSearchParams(location.search).get('room')||'',name:entryName});}
 function updateRoom(next) { if(preview)return;if(!room||next.code!==room.code||next.version>=room.version) {room=next; if(room.game.phase==='lobby')renderLobby();else renderGame();} schedulePoll(); }
 async function refreshRoom() { if(!room||preview)return; const currentCode=room.code; const next=await api(`/rooms/${currentCode}?since=${room.version}`); if(room?.code===currentCode&&!next.unchanged)updateRoom(next); }
 function schedulePoll() { clearTimeout(pollTimer); if(preview||!room||document.hidden)return; pollTimer=setTimeout(async()=>{try{if(!busy)await refreshRoom();}catch(e){failures++;status(`连接中断，正在重试（${failures}）`,true);if(e.status===401){saveAuth(null);room=null;health=await api('/health',{anonymous:true});renderLogin();return;}}schedulePoll();},Math.min(10000,2000*(failures+1))); }
@@ -139,7 +147,8 @@ function previewToolbar(){return `<section class="preview-toolbar"><div class="p
 function refreshPreview(){room={code:'PREVIEW',version:0,game:preview.module.viewGame(preview.state,preview.seatId)};status('单人画面测试');renderGame();}
 async function openPreview(scene='showcase',board='night'){
   const url=new URL(location.href);url.searchParams.set('preview','1');history.replaceState(null,'',url);
-  if(!auth){renderLogin();flash('请先输入好友访问密码并登录，随后会直接进入单人画面测试。');root.querySelector('input')?.focus();return;}
+  if(!auth){entryMode='admin';renderLogin();flash('请先输入统一管理员密码，随后会直接进入单人画面测试。');root.querySelector('input')?.focus();return;}
+  if(auth.access==='room'){await renderHome({resumeRoom:true});flash('单人画面测试请从管理员入口进入。');return;}
   if(!preview){try{await api('/me');}catch(e){if(e.status===401){saveAuth(null);renderLogin();flash('请重新登录后进入单人画面测试。');return;}throw e;}}
   clearTimeout(pollTimer);previewModule ||= await import('./preview-engine.mjs');
   const state=previewModule.makePreview(scene,board);preview={module:previewModule,state,scene,board,seatId:previewModule.activeSeat(state),follow:true};
@@ -169,6 +178,7 @@ root.addEventListener('submit',event=>{
   task(async()=>{const d=new FormData(form);switch(form.dataset.form){
     case 'setup':if(d.get('password')!==d.get('confirmPassword'))throw new Error('两次密码不一致');await api('/setup',{method:'POST',body:{password:d.get('password')},anonymous:true});health=await api('/health',{anonymous:true});renderLogin();flash('访问密码已保存，请登录。');break;
     case 'login':saveAuth(await api('/login',{method:'POST',body:{name:d.get('name'),password:d.get('password')},anonymous:true}));if(new URLSearchParams(location.search).get('preview')==='1')await openPreview();else await renderHome();break;
+    case 'room-login':{const {room:next,...session}=await api('/room-login',{method:'POST',body:{name:d.get('name'),code:d.get('code')},anonymous:true});saveAuth(session);const url=new URL(location.href);url.searchParams.delete('preview');url.searchParams.set('room',next.code);history.replaceState(null,'',url);updateRoom(next);break;}
     case 'create':updateRoom(await api('/rooms',{method:'POST',body:{name:d.get('name'),maxPlayers:Number(d.get('maxPlayers')),hotelMode:d.get('hotelMode')}}));break;
     case 'join':updateRoom(await api(`/rooms/${String(d.get('code')).trim().toUpperCase()}/join`,{method:'POST',body:{}}));break;
     case 'resolve':await action(readResolve(form));break;
@@ -182,11 +192,12 @@ root.addEventListener('change',event=>{
   const input=event.target;
   if(preview&&['previewScene','previewBoard','previewSeat','previewFollow'].includes(input.name))task(async()=>{if(input.name==='previewScene')await openPreview(input.value,preview.board);if(input.name==='previewBoard')await openPreview(preview.scene,input.value);if(input.name==='previewSeat'){preview.seatId=input.value;preview.follow=false;refreshPreview();}if(input.name==='previewFollow'){preview.follow=input.checked;if(preview.follow)preview.seatId=preview.module.activeSeat(preview.state);refreshPreview();}});
   if(input.name==='rooms'){const form=input.closest('form'),key=form.dataset.key;let list=(selections.get(key)||[]).filter(id=>id!==input.value);if(input.checked)list.push(input.value);selections.set(key,list);const info=form.querySelector('[data-selection-info]');if(info)info.textContent=list.length?`处理顺序：${list.join(' → ')}`:'尚未选择房间';}
-  if(input.id==='import-session')task(async()=>{const file=input.files[0];if(!file)return;if(file.size>4096)throw new Error('重连文件无效');const data=JSON.parse(await file.text()),old=auth;if(!/^[A-Za-z0-9_-]{40,100}$/.test(data.token||''))throw new Error('重连文件无效');auth=data;try{const who=await api('/me');saveAuth({...data,player:who.player});await renderHome();}catch(e){auth=old;throw e;}});
+  if(input.id==='import-session')task(async()=>{const file=input.files[0];if(!file)return;if(file.size>4096)throw new Error('重连文件无效');const data=JSON.parse(await file.text()),old=auth;if(!/^[A-Za-z0-9_-]{40,100}$/.test(data.token||''))throw new Error('重连文件无效');auth=data;try{const who=await api('/me');saveAuth({...data,player:who.player,access:who.access});await renderHome({resumeRoom:true});}catch(e){auth=old;throw e;}});
 });
 root.addEventListener('click',event=>{
   const button=event.target.closest('button[data-do]');if(!button)return;
   task(async()=>{switch(button.dataset.do){
+    case 'entry-mode':entryName=root.querySelector('input[name="name"]')?.value||entryName;entryMode=button.dataset.mode;renderLogin();break;
     case 'open-preview':await openPreview();break;
     case 'preview-reset':await openPreview(preview.scene,preview.board);break;
     case 'preview-follow':preview.follow=true;preview.seatId=preview.module.activeSeat(preview.state);refreshPreview();break;
@@ -195,7 +206,7 @@ root.addEventListener('click',event=>{
     case 'kick':await action({type:'kick',playerId:button.dataset.id});break;
     case 'home':if(preview)await closePreview();else await renderHome();break;
     case 'open-room':updateRoom(await api(`/rooms/${button.dataset.code}`));break;
-    case 'copy-room':{const url=new URL(location.href);url.search='';url.searchParams.set('room',room.code);try{await navigator.clipboard.writeText(url.href);flash('好友链接已复制；请另行私下发送访问密码。');}catch{flash(`好友链接：${url.href}`);}break;}
+    case 'copy-room':await copyRoomLink();break;
     case 'take-guest':await action({type:room.game.phase==='setupGuest'?'setupGuest':'attract',index:Number(button.dataset.index)});break;
     case 'default-rooms':await action({type:'setupRooms',rooms:['1-1','1-2','1-3']});break;
     case 'skip-effect':{const form=button.closest('form');await action({...readResolve(form),skip:true});break;}
@@ -209,5 +220,5 @@ root.addEventListener('click',event=>{
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden)clearTimeout(pollTimer);else{if(room)task(refreshRoom);schedulePoll();}});
 window.addEventListener('online',()=>{if(room)task(refreshRoom);});
-async function init(){if(window.HOTEL_ONLINE_PENDING){status('等待公网开门');root.className='view-arrival';root.innerHTML=renderOnlinePending();return;}try{health=await api('/health',{anonymous:true});if(new URLSearchParams(location.search).get('preview')==='1'){await openPreview();return;}if(auth){try{await renderHome();}catch(e){if(e.status===401){saveAuth(null);renderLogin();}else throw e;}}else renderLogin();}catch(e){status('无法连接',true);root.innerHTML='<section class="panel login"><h2>饭店暂时无法连接</h2><p>请稍后刷新重试；本地试玩请确认服务已经启动。</p></section>';flash('连接失败，请检查游戏服务与网络。');}}
+async function init(){if(window.HOTEL_ONLINE_PENDING){status('等待公网开门');root.className='view-arrival';root.innerHTML=renderOnlinePending();return;}try{health=await api('/health',{anonymous:true});if(new URLSearchParams(location.search).get('preview')==='1'){await openPreview();return;}if(auth){try{await renderHome({resumeRoom:true});}catch(e){if(e.status===401){saveAuth(null);renderLogin();}else throw e;}}else renderLogin();}catch(e){status('无法连接',true);root.innerHTML='<section class="panel login"><h2>饭店暂时无法连接</h2><p>请稍后刷新重试；本地试玩请确认服务已经启动。</p></section>';flash('连接失败，请检查游戏服务与网络。');}}
 init();
