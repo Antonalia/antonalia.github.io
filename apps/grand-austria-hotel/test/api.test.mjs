@@ -17,6 +17,86 @@ async function fixture({limited=false,setup=false}={}){
   return{store,base,call,close:()=>new Promise(resolve=>server.close(resolve))};
 }
 
+test('活动状态只允许当前玩家，独立于版本更新和选牌；过期与换人后清除',async t=>{
+  const f=await fixture();t.after(f.close);
+  const a=(await f.call('/api/login',{body:{name:'甲',password:PASSWORD}})).body,b=(await f.call('/api/login',{body:{name:'乙',password:PASSWORD}})).body,c=(await f.call('/api/login',{body:{name:'旁观者',password:PASSWORD}})).body;
+  let r=(await f.call('/api/rooms',{token:a.token,body:{maxPlayers:2}})).body;
+  r=(await f.call(`/api/rooms/${r.code}/join`,{token:b.token,body:{}})).body;
+  r=(await f.call(`/api/rooms/${r.code}/action`,{token:a.token,body:{version:r.version,requestId:randomUUID(),action:{type:'start'}}})).body;
+  const who=r.game.activePlayerId===a.player.id?a:b,other=who===a?b:a,path=`/api/rooms/${r.code}/activity`,body={version:r.version,kind:'staff'};
+  assert.equal((await f.call(path,{token:c.token,body})).status,403);
+  assert.equal((await f.call(path,{token:other.token,body})).status,403);
+  assert.equal((await f.call(path,{token:who.token,body:{...body,text:'不可信文本'}})).status,400);
+  assert.equal((await f.call(path,{token:who.token,body:{...body,kind:'future-deck'}})).status,400);
+  assert.equal((await f.call(path,{token:who.token,body})).status,200);
+  const polling=(await f.call(`/api/rooms/${r.code}?since=${r.version}`,{token:other.token})).body;
+  assert.equal(polling.unchanged,true);assert.equal(polling.version,r.version);assert.equal(polling.liveActivity.kind,'staff');assert.equal(polling.liveActivity.playerId,who.player.id);
+  assert.deepEqual(Object.keys(polling.liveActivity).sort(),['expiresAt','kind','playerId']);
+  await f.store.mutate(data=>{data.rooms[r.code].liveActivity.expiresAt=Date.now()-1;});
+  assert.equal((await f.call(`/api/rooms/${r.code}`,{token:other.token})).body.liveActivity,null);
+  assert.equal((await f.call(path,{token:who.token,body})).status,200);
+  const active=(await f.call(`/api/rooms/${r.code}`,{token:who.token})).body;
+  const picked=await f.call(`/api/rooms/${r.code}/action`,{token:who.token,body:{version:r.version,requestId:randomUUID(),action:{type:'draftStaff',staffId:active.game.prompt.drawn[0].id}}});
+  assert.equal(picked.status,200);assert.equal(picked.body.version,r.version+1);assert.equal(picked.body.liveActivity,null);
+  assert.equal((await f.call(path,{token:who.token,body})).status,409);
+});
+
+test('三个人机HTTP对局保存、独立公开视图与重复请求，恢复不重复自动行动',async t=>{
+  const f=await fixture();t.after(f.close);
+  const a=(await f.call('/api/login',{body:{name:'玩家',password:PASSWORD}})).body;
+  let r=(await f.call('/api/rooms',{token:a.token,body:{mode:'solo',botCount:3,difficulty:'hard'}})).body;
+  assert.equal(r.game.players.length,4);assert.equal(r.game.solo.botCount,3);
+  const act=async action=>{const response=await f.call(`/api/rooms/${r.code}/action`,{token:a.token,body:{version:r.version,requestId:randomUUID(),action}});assert.equal(response.status,200,JSON.stringify(response.body));r=response.body;};
+  await act({type:'start'});const drawn=r.game.prompt.drawn.map(c=>c.id);
+  await act({type:'resolve',promptId:r.game.prompt.uid,cards:drawn.slice(0,6)});await act({type:'setupGuest',index:4});
+  const body={version:r.version,requestId:randomUUID(),action:{type:'setupRooms',rooms:['1-1','1-2','1-3']}};
+  const first=await f.call(`/api/rooms/${r.code}/action`,{token:a.token,body}),repeat=await f.call(`/api/rooms/${r.code}/action`,{token:a.token,body});
+  assert.equal(first.status,200);assert.equal(repeat.body.version,first.body.version);assert.deepEqual(repeat.body.game.solo,first.body.game.solo);
+  const restored=(await f.call(`/api/rooms/${r.code}`,{token:a.token})).body.game;
+  assert.equal(restored.activePlayerId,a.player.id);assert.deepEqual(restored.solo.opponents.map(x=>x.turns),[1,1,1]);assert.equal(restored.dice.length,11);
+  assert.ok(restored.solo.opponents.every(x=>!('deck'in x)&&!('privateStaff'in x)));
+  assert.ok(restored.activity.events.some(e=>e.kind==='instruction'));assert.ok(restored.activity.events.every(e=>!('hand'in e)&&!('choice'in e)));
+});
+
+test('轮流选牌与合并取骰请求均一次生效，错误草稿不更新版本',async t=>{
+  const f=await fixture();t.after(f.close);
+  const a=(await f.call('/api/login',{body:{name:'甲',password:PASSWORD}})).body,b=(await f.call('/api/login',{body:{name:'乙',password:PASSWORD}})).body;
+  let r=(await f.call('/api/rooms',{token:a.token,body:{maxPlayers:2}})).body;
+  r=(await f.call(`/api/rooms/${r.code}/join`,{token:b.token,body:{}})).body;
+  const sessions={[a.player.id]:a,[b.player.id]:b};
+  const get=who=>f.call(`/api/rooms/${r.code}`,{token:who.token});
+  const send=(who,action,version=r.version,requestId=randomUUID())=>f.call(`/api/rooms/${r.code}/action`,{token:who.token,body:{action,version,requestId}});
+  const commit=async(who,action)=>{const result=await send(who,action);assert.equal(result.status,200,JSON.stringify(result.body));r=result.body;};
+  await commit(a,{type:'start'});
+  let who=sessions[r.game.activePlayerId],other=who===a?b:a;
+  r=(await get(who)).body;
+  assert.equal((await get(other)).body.game.prompt.drawn,undefined);
+  const action={type:'draftStaff',staffId:r.game.prompt.drawn[0].id},version=r.version,requestId=randomUUID();
+  assert.equal((await send(other,action)).status,400);
+  const first=await send(who,action,version,requestId),replay=await send(who,action,version,requestId);
+  assert.equal(first.status,200);assert.equal(replay.status,200);assert.equal(replay.body.version,version+1);
+  assert.equal((await get(who)).body.game.players.find(p=>p.id===who.player.id).hand.length,1);
+  r=first.body;
+  while(r.game.phase==='setupStaff'){
+    who=sessions[r.game.activePlayerId];r=(await get(who)).body;
+    await commit(who,{type:'draftStaff',staffId:r.game.prompt.drawn[0].id});
+  }
+  while(r.game.phase==='setupGuest')await commit(sessions[r.game.activePlayerId],{type:'setupGuest',index:4});
+  while(r.game.phase==='setupRooms')await commit(sessions[r.game.activePlayerId],{type:'setupRooms',rooms:['1-1','1-2','1-3']});
+  await f.store.mutate(data=>{data.rooms[r.code].game.dice=[2,2,6];});
+  who=sessions[r.game.activePlayerId];r=(await get(who)).body;
+  const before=r,player=before.game.players.find(p=>p.id===who.player.id),v=r.version;
+  assert.equal((await send(who,{type:'die',face:6,asFace:2,boost:true,choice:{counts:{coffee:2}}})).status,400);
+  assert.equal((await get(who)).body.version,v);
+  const joint={type:'die',face:6,asFace:2,boost:true,choice:{counts:{wine:2}}},key=randomUUID();
+  const applied=await send(who,joint,v,key),repeated=await send(who,joint,v,key);
+  assert.equal(applied.status,200,JSON.stringify(applied.body));assert.equal(repeated.status,200);
+  assert.equal(applied.body.version,v+1);assert.equal(repeated.body.version,v+1);
+  const current=(await get(who)).body.game,after=current.players.find(p=>p.id===who.player.id);
+  assert.equal(after.money,player.money-2);assert.equal(after.kitchen.wine,player.kitchen.wine+2);
+  assert.deepEqual(current.dice,[2,2]);assert.equal(current.prompt,null);
+});
+
 test('联机桌上工具：全员表态、并发通过一次、反悔同步和过期计时CAS',async t=>{
   const f=await fixture();t.after(f.close);
   const a=(await f.call('/api/login',{body:{name:'甲',password:PASSWORD}})).body,b=(await f.call('/api/login',{body:{name:'乙',password:PASSWORD}})).body;
@@ -26,6 +106,7 @@ test('联机桌上工具：全员表态、并发通过一次、反悔同步和�
   const send=(who,action,{version=r.version,requestId=randomUUID()}={})=>f.call(`/api/rooms/${r.code}/action`,{token:who.token,body:{action,version,requestId}});
   const commit=async(who,action)=>{const res=await send(who,action);assert.equal(res.status,200,JSON.stringify(res.body));r=res.body;return r;};
   await commit(a,{type:'start'});
+  while(r.game.phase==='setupStaff'){const who=byId[r.game.activePlayerId];r=(await f.call(`/api/rooms/${r.code}`,{token:who.token})).body;await commit(who,{type:'draftStaff',staffId:r.game.prompt.drawn[0].id});}
   while(r.game.phase==='setupGuest')await commit(byId[r.game.activePlayerId],{type:'setupGuest',index:4});
   while(r.game.phase==='setupRooms')await commit(byId[r.game.activePlayerId],{type:'setupRooms',rooms:['1-1','1-2','1-3']});
   const owner=byId[r.game.activePlayerId],other=owner===a?b:a,initialDice=[...r.game.dice];
@@ -99,6 +180,7 @@ test('三个真实HTTP客户端：创建、加入、成员权限、初始化、�
   async function act(s,action,requestId=randomUUID(),version=r.version){return f.call(`/api/rooms/${r.code}/action`,{token:s.token,body:{action,requestId,version}});}
   assert.equal((await act(b,{type:'start'})).status,400);
   r=(await act(a,{type:'start'})).body;
+  while(r.game.phase==='setupStaff'){const owner=byId[r.game.activePlayerId];r=(await f.call(`/api/rooms/${r.code}`,{token:owner.token})).body;r=(await act(owner,{type:'draftStaff',staffId:r.game.prompt.drawn[0].id})).body;}
   while(r.game.phase==='setupGuest'){const owner=byId[r.game.activePlayerId];r=(await act(owner,{type:'setupGuest',index:4})).body;}
   while(r.game.phase==='setupRooms'){const owner=byId[r.game.activePlayerId];r=(await act(owner,{type:'setupRooms',rooms:['1-1','1-2','1-3']})).body;}
   const owner=byId[r.game.activePlayerId],other=owner===a?b:a;
@@ -160,6 +242,7 @@ test('四位邀请码可直接进入指定房间，不能创建房间、跨房�
   assert.equal((await act(invited,{type:'start'})).status,400);
   room=(await act(admin,{type:'start'})).body;
   assert.equal((await f.call('/api/room-login',{body:{name:'晚到好友',code:room.code}})).status,400);
+  while(room.game.phase==='setupStaff'){const who=byId[room.game.activePlayerId];room=(await f.call(`/api/rooms/${room.code}`,{token:who.token})).body;const r=await act(who,{type:'draftStaff',staffId:room.game.prompt.drawn[0].id});assert.equal(r.status,200);room=r.body;}
   while(room.game.phase==='setupGuest'){const r=await act(byId[room.game.activePlayerId],{type:'setupGuest',index:4});assert.equal(r.status,200);room=r.body;}
   while(room.game.phase==='setupRooms'){const r=await act(byId[room.game.activePlayerId],{type:'setupRooms',rooms:['1-1','1-2','1-3']});assert.equal(r.status,200);room=r.body;}
   const restored=(await f.call(`/api/rooms/${room.code}`,{token:invited.token})).body;

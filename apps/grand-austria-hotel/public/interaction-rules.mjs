@@ -16,7 +16,42 @@ export function allocationLimit(player,available,allocations,guestId,resource,{l
   const own=allocations.find(a=>a.guestId===guestId&&a.resource===resource)?.amount||0;
   return Math.max(0,Math.min((available[resource]||0)-used,(guest.needs[resource]||0)-(guest.served[resource]||0)-own,limit-allocations.reduce((n,a)=>n+a.amount,0)));
 }
+export function missingFoods(guest,allocations=[]){
+  return Object.fromEntries(FOODS.map(resource=>[resource,Math.max(0,(guest.needs[resource]||0)-(guest.served[resource]||0)-allocations.filter(a=>a.guestId===guest.uid&&a.resource===resource).reduce((n,a)=>n+a.amount,0))]));
+}
+export function servingResources(player,guestId,allocations=[]){
+  const guest=player.cafe.find(c=>c.uid===guestId);if(!guest)return [];
+  const missing=missingFoods(guest);
+  // Keep a selected item visible so the player can still reduce it to zero.
+  return FOODS.filter(r=>missing[r]>0||allocations.some(a=>a.guestId===guestId&&a.resource===r&&a.amount>0));
+}
+export function turnEndIntent(game){
+  if(game.phase!=='turn'||game.prompt||game.tableControls?.pending||!game.turn)return null;
+  if(game.turn.dieTaken)return {type:'endTurn'};
+  return !game.turn.touched&&!game.turn.guestTaken?{type:'pass'}:null;
+}
+// Read-only quote for the action picker. The server still validates the real move.
+export function dicePlan(game,player,{face,asFace=1,boost=false},{extra=false}={}){
+  const copy=face===6,count=game.dice.filter(n=>n===face).length,actionFace=copy?asFace:face;
+  const wildcardHelper=!extra&&copy&&player.staff.some(c=>c.mechanics?.freeWildcard);
+  const staffPower=extra?0:player.staff.reduce((n,c)=>n+(c.mechanics?.on==='dieTaken'&&c.mechanics.faces?.includes(face)&&!c.mechanics.freeWildcard?(c.mechanics.power||0):0),0)+(wildcardHelper?1:0);
+  const copyFee=copy&&!wildcardHelper?1:0,cost=copyFee+(boost?1:0),strength=count+staffPower+(boost?1:0);
+  let reason='';
+  if(!count)reason='这个点数没有可用骰子';
+  else if(!Number.isInteger(actionFace)||actionFace<1||actionFace>5)reason='请选择一种动作';
+  else if(boost&&(extra||game.turn?.boostUsed))reason='本次不能增强行动';
+  else if(player.money<cost)reason='克朗不足';
+  return {copy,count,actionFace,copyFee,cost,staffPower,strength,valid:!reason,reason};
+}
+export function diceMainEffect(game,player,selection,{extra=false}={}){
+  const plan=dicePlan(game,player,selection,{extra}),amount=plan.strength,face=plan.actionFace;
+  if(face<=2)return {kind:'goods',amount,pair:face===1?['strudel','cake']:['wine','coffee'],balanced:true};
+  if(face===3)return {kind:'prepare',amount};
+  if(face===4)return {kind:!extra&&selection.face===4&&player.staff.some(c=>c.mechanics?.bothMoneyAndEmperor)?'bothMoneyEmperor':'moneyEmperor',amount};
+  return {kind:'hire',discount:amount+(!extra&&selection.face===5?player.staff.reduce((n,c)=>n+(c.mechanics?.on==='dieTaken'&&c.mechanics.faces?.includes(5)?c.mechanics.discount||0:0),0):0)};
+}
 const roomCost=(p,r,e)=>e.free||p.staff.some(c=>c.mechanics?.freeRoomColor===r.color)?0:Math.max(0,r.floor-1-(e.discount||0)-p.staff.reduce((n,c)=>n+(c.traits?.roomDiscount||0),0));
+export const roomPreparationCost=roomCost;
 export function selectableRooms(player,e,selected=[],checkinGuest=null){
   const rooms=player.rooms.map(r=>({...r})),picked=new Set(selected),mode=e.kind;
   let money=player.money;

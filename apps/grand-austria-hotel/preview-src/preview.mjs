@@ -6,11 +6,13 @@ const guestById=Object.fromEntries(GUESTS.map(c=>[c.id,c]));
 const stock=(n=0)=>Object.fromEntries(GOODS.map(r=>[r,n]));
 function guest(id,uid,complete=false){return{id,uid,served:complete?{...stock(),...guestById[id].needs}:stock()};}
 export function makePreview(scene='showcase',hotelMode='night'){
-  if(!['showcase','opening','finale','overview'].includes(scene)||!['night','day'].includes(hotelMode))throw new Error('未知示例场景');
+  if(!['showcase','opening','finale','overview','draft'].includes(scene)||!['night','day'].includes(hotelMode))throw new Error('未知示例场景');
   const host={id:'preview-anna',name:'安娜'},friend={id:'preview-josef',name:'约瑟夫'};
   let lobby=joinLobby(newLobby(host,{name:'维也纳 · 单人画面测试',maxPlayers:scene==='overview'?4:2,hotelMode}),friend);
   if(scene==='overview')for(const player of [{id:'preview-matilda',name:'玛蒂尔达'},{id:'preview-franz',name:'弗朗茨'}])lobby=joinLobby(lobby,player);
   let s=startGame(lobby,host.id,max=>max-1);
+  if(scene==='draft')return s;
+  while(s.phase==='setupStaff'){const id=s.staffDraft.order[s.staffDraft.index];s=applyAction(s,id,{type:'draftStaff',staffId:s.staffDraft.packets[s.staffDraft.index][0]});}
   while(s.phase==='setupGuest')s=applyAction(s,s.setupOrder[s.setupIndex],{type:'setupGuest',index:4});
   while(s.phase==='setupRooms')s=applyAction(s,s.setupOrder[s.setupIndex],{type:'setupRooms',rooms:['1-1','1-2','1-3']});
   s.dice=[1,1,1,2,2,3,3,4,5,6,...(scene==='overview'?[1,2,4,5]:[])];
@@ -49,4 +51,4 @@ export function makePreview(scene='showcase',hotelMode='night'){
   }
   return s;
 }
-export function activeSeat(state){return (state.tableSession?.pending?state.players.find(p=>!state.tableSession.pending.approved.includes(p.id))?.id:null)||state.effects[0]?.playerId||state.turn?.playerId||state.players[0].id;}
+export function activeSeat(state){return (state.tableSession?.pending?state.players.find(p=>!state.tableSession.pending.approved.includes(p.id))?.id:null)||(state.phase==='setupStaff'?state.staffDraft.order[state.staffDraft.index]:null)||(['setupGuest','setupRooms'].includes(state.phase)?state.setupOrder[state.setupIndex]:null)||state.effects[0]?.playerId||state.turn?.playerId||state.players[0].id;}

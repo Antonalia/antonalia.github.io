@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {changeFood,canChangeFood,allocationLimit,selectableRooms,turnIdentity,shouldOfferGuest} from '../public/interaction-rules.mjs';
+import {changeFood,canChangeFood,allocationLimit,selectableRooms,turnIdentity,shouldOfferGuest,missingFoods,servingResources,turnEndIntent,dicePlan} from '../public/interaction-rules.mjs';
 import {makePreview} from '../preview-src/preview.mjs';
-import {viewGame} from '../lib/game.mjs';
+import {viewGame,applyAction} from '../lib/game.mjs';
 import {GUESTS} from '../lib/catalog.mjs';
 import {chineseText} from '../public/chinese.mjs';
 import {draftGuest,guestSelection} from '../public/interaction-rules.mjs';
@@ -31,6 +31,35 @@ test('allocating food accounts for all guests, remaining stock, order demand and
   const allocations=[{guestId:'a',resource:'wine',amount:2}];
   assert.equal(allocationLimit(player,stock,allocations,'b','wine'),1);assert.equal(allocationLimit(player,stock,allocations,'a','wine'),0);
   assert.equal(allocationLimit(player,stock,[...allocations,{guestId:'b',resource:'wine',amount:1}],'b','wine',{limit:3}),0);
+});
+test('serving choices follow the selected guest and preserve reductions after fulfilling a need',()=>{
+  const player={cafe:[{uid:'a',needs:{wine:2,cake:1},served:{wine:1,cake:1}},{uid:'b',needs:{coffee:2},served:{coffee:0}}]};
+  assert.deepEqual(servingResources(player,'a'),['wine']);assert.deepEqual(servingResources(player,'b'),['coffee']);
+  const allocations=[{guestId:'a',resource:'wine',amount:1}];
+  assert.equal(missingFoods(player.cafe[0],allocations).wine,0);
+  assert.deepEqual(servingResources(player,'a',allocations),['wine']);
+  assert.deepEqual(servingResources(player,'missing'),[]);
+});
+test('one end-turn control retains the official pass window and mandatory main action',()=>{
+  assert.deepEqual(turnEndIntent({...g,prompt:null,turn:{dieTaken:false,touched:false,guestTaken:false}}),{type:'pass'});
+  assert.deepEqual(turnEndIntent({...g,prompt:null,turn:{dieTaken:true,touched:true}}),{type:'endTurn'});
+  assert.equal(turnEndIntent({...g,prompt:null,turn:{dieTaken:false,touched:true}}),null);
+  assert.equal(turnEndIntent({...g,prompt:{kind:'goods'},turn:{dieTaken:true}}),null);
+});
+test('dice planner quotes copying plus enhancement jointly and matches authoritative food strength',()=>{
+  for(const staffIds of [[],[13],[17],[13,17]])for(const face of [1,2,6])for(const boost of [false,true]){
+    const source=makePreview();source.players[0].staff=staffIds.map(id=>({id,usedRound:0}));source.players[0].money=10;
+    const game=viewGame(source,'preview-anna'),player=game.players[0],selection={face,asFace:2,boost};
+    const quote=dicePlan(game,player,selection),after=applyAction(source,player.id,{type:'die',...selection});
+    const prompt=viewGame(after,player.id).prompt;
+    assert.equal(quote.valid,true);assert.equal(prompt.kind,'goods');assert.equal(prompt.amount,quote.strength);
+    assert.equal(after.players[0].money,player.money-quote.cost);
+  }
+  const broke={...p,money:1,staff:[]};assert.equal(dicePlan(g,broke,{face:6,asFace:1,boost:true}).valid,false);
+  assert.equal(dicePlan(g,{...broke,money:2},{face:6,asFace:1,boost:true}).cost,2);
+  assert.equal(dicePlan({...g,turn:{boostUsed:true}},p,{face:1,boost:true}).valid,false);
+  const extra=dicePlan(g,{...broke,staff:[STAFF.find(c=>c.id===17)]},{face:6,asFace:2},{extra:true});
+  assert.equal(extra.cost,1);assert.equal(extra.strength,g.dice.filter(n=>n===6).length);
 });
 test('room clicking highlights only connected and affordable preparations, including chained selections',()=>{
   const player={money:0,staff:[],rooms:[{id:'1-1',floor:1,col:1,state:'closed',color:'blue'},{id:'1-2',floor:1,col:2,state:'closed',color:'red'},{id:'2-1',floor:2,col:1,state:'closed',color:'blue'}]};

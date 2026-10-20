@@ -1,6 +1,7 @@
 import { newLobby, joinLobby, applyAction, viewGame,advanceTableTime } from './game.mjs';
 import { token, digest, hashPassword, verifyPassword, RateLimiter } from './auth.mjs';
 import { randomInt } from 'node:crypto';
+import {ACTIVITY_KINDS,liveActivity} from './activity.mjs';
 
 const TTL = 7 * 24 * 60 * 60 * 1000;
 const invalid = (message, status = 400) => { const e = new Error(message); e.status = status; throw e; };
@@ -16,7 +17,7 @@ async function jsonBody(req) {
 }
 export function createApi({ store, passwordHash, allowLocalSetup = false, allowedOrigins = [], trustedProxy = false, rateLimiter = new RateLimiter() }) {
   async function configuredHash() { return passwordHash || await store.setting('passwordHash'); }
-  function publicRoom(room, id) { return { code: room.code, version: room.version, updatedAt: room.updatedAt, game: viewGame(room.game, id) }; }
+  function publicRoom(room, id) { return { code: room.code, version: room.version, updatedAt: room.updatedAt, liveActivity:liveActivity(room), game: viewGame(room.game, id) }; }
   const roomIdentity = room => room.instanceId || String(room.createdAt);
   const publicSession = (rawToken, session) => ({ token: rawToken, player: { id: session.id, name: session.name }, expiresAt: session.expiresAt, access: session.access || 'admin' });
   async function settleClock(room){
@@ -101,7 +102,7 @@ export function createApi({ store, passwordHash, allowLocalSetup = false, allowe
         }
         invalid('创建房间失败，请重试', 503);
       }
-      const match = /^\/api\/rooms\/(\d{4}|[A-Z2-9]{7})(?:\/(join|action))?$/.exec(path);
+      const match = /^\/api\/rooms\/(\d{4}|[A-Z2-9]{7})(?:\/(join|action|activity))?$/.exec(path);
       if (!match) invalid('接口不存在', 404);
       const code = match[1], operation = match[2];
       if (session.access === 'room' && session.roomCode !== code) invalid('房间码仅用于进入对应房间', 403);
@@ -112,9 +113,19 @@ export function createApi({ store, passwordHash, allowLocalSetup = false, allowe
         send(200, publicRoom(room, session.id)); return;
       }
       if (!room.game.players.some(p => p.id === session.id)) invalid('你不是这个房间的成员', 403);
+      if(operation==='activity'&&req.method==='POST'){
+        if(!rateLimiter.take(`activity:${session.id}`,30))invalid('活动状态更新过于频繁',429);
+        const body=await jsonBody(req),view=viewGame(room.game,session.id);
+        if(body.version!==room.version)invalid('活动状态已过期',409);
+        if(!Object.hasOwn(ACTIVITY_KINDS,body.kind)||Object.keys(body).some(k=>!['version','kind'].includes(k)))invalid('活动状态无效');
+        if(view.activePlayerId!==session.id||room.game.players.find(p=>p.id===session.id).bot)invalid('只能更新自己的当前行动状态',403);
+        const activity={playerId:session.id,kind:body.kind,version:room.version,expiresAt:Date.now()+12000};
+        if(!await store.setActivity(code,roomIdentity(room),room.version,activity))invalid('活动状态已变化',409);
+        send(200,{ok:true});return;
+      }
       room=await settleClock(room);
       if (!operation && req.method === 'GET') {
-        if (url.searchParams.get('since') === String(room.version)) send(200, { unchanged: true, version: room.version }); else send(200, publicRoom(room, session.id)); return;
+        if (url.searchParams.get('since') === String(room.version)) send(200, { unchanged: true, version: room.version, liveActivity:liveActivity(room) }); else send(200, publicRoom(room, session.id)); return;
       }
       if (operation === 'action' && req.method === 'POST') {
         const body = await jsonBody(req);

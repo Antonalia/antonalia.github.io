@@ -12,6 +12,13 @@ test('博客子路径：同源密码接口、独立玩家、公开静态文件�
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
   const origin=`http://127.0.0.1:${server.address().port}`,base=origin+prefix;
   assert.equal((await fetch(base+'/')).status,200);
+  const manifestResponse=await fetch(base+'/manifest.webmanifest');
+  assert.match(manifestResponse.headers.get('content-type'),/application\/manifest\+json/);
+  const manifest=await manifestResponse.json();
+  assert.equal(manifest.display,'standalone');assert.equal(manifest.scope,'./');assert.equal(manifest.start_url,'./');
+  for(const entry of [...manifest.icons,{src:'./assets/icon-180.png'}]){
+    const response=await fetch(base+'/'+entry.src.replace(/^\.\//,''));assert.equal(response.status,200);assert.match(response.headers.get('content-type'),/image\/png/);
+  }
   assert.match(await fetch(base+'/config.js').then(r=>r.text()),/HOTEL_API_BASE = "\/friends-hotel"/);
   assert.equal((await fetch(base+'/.private/blog-state.json')).status,404);
   assert.equal((await fetch(base+'/lib/game.mjs')).status,404);

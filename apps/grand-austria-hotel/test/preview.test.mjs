@@ -25,3 +25,18 @@ test('浏览器测试包不包含认证、数据库或服务端会话代码',asy
   const bundle=await readFile(new URL('../public/preview-engine.mjs',import.meta.url),'utf8');
   for(const secret of ['passwordHash','GAME_DATABASE_URL','createApi','NeonStore','token_hash','node:crypto'])assert.ok(!bundle.includes(secret),secret);
 });
+
+test('轮抽示例自动跟随下一位玩家，每人每轮只保留一张',()=>{
+  let s=makePreview('draft'),picks=0;
+  while(s.phase==='setupStaff'){
+    const id=activeSeat(s),view=viewGame(s,id);
+    assert.equal(view.prompt.kind,'staffDraft');
+    assert.equal(view.prompt.round,Math.floor(picks/2)+1);
+    s=applyAction(s,id,{type:'draftStaff',staffId:view.prompt.drawn[0].id});
+    picks++;
+    if(picks<12)assert.notEqual(activeSeat(s),id);
+  }
+  assert.equal(picks,12);assert.equal(s.phase,'setupGuest');
+  assert.equal(activeSeat(s),s.setupOrder[s.setupIndex]);
+  assert.deepEqual(s.players.map(p=>p.hand.length),[6,6]);
+});

@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-20",
+  "status": "api_verified",
+  "frontend": "https://antonalia.github.io/friends-hotel/",
+  "origin": "https://grand-austria-hotel.vercel.app",
+  "features": [
+    "1–3 independent Leopold opponents; 2–3 explicitly custom variant",
+    "public action receipts, playback and ephemeral activity status",
+    "two-column staff and alternating initial draft",
+    "fixed dice dialog with main-action quantities committed once",
+    "mobile home-screen metadata and previous local UI improvements"
+  ],
+  "localGameTests": 154,
+  "existingDatabaseAndPasswordPreserved": true,
+  "browserVerification": "unavailable: UI tool initialization failure; not claimed complete",
+  "vercelDeployment": "dpl_CmEaf2W8wYJShLzRUjovxTmyVbhf",
+  "backendReady": true,
+  "productionChecks": [
+    "production health and existing configuration",
+    "existing administrator entry remains usable",
+    "three independent bots start, persist and replay only once; hidden data withheld",
+    "combined dice choice and public receipts commit once",
+    "Neon activity update, other-client polling, permissions and alternating draft",
+    "private server files stay unavailable"
+  ],
+  "testSessionsRevoked": 2,
+  "blogTests": 66,
+  "uploadAudit": {
+    "files": 44,
+    "privateFiles": 0,
+    "credentialPatterns": 0
+  },
+  "frontendWorkflow": "pages.yml on this release commit"
+}

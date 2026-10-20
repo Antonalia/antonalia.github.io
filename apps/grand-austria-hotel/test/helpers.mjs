@@ -4,6 +4,7 @@ export function ready(n=2, mode='night') {
   let s=newLobby({id:'p1',name:'甲'},{hotelMode:mode});
   for(let i=2;i<=n;i++)s=joinLobby(s,{id:`p${i}`,name:`玩家${i}`});
   s=startGame(s,'p1',max=>max-1);
+  while(s.phase==='setupStaff'){const id=s.staffDraft.order[s.staffDraft.index];s=applyAction(s,id,{type:'draftStaff',staffId:s.staffDraft.packets[s.staffDraft.index][0]});}
   while(s.phase==='setupGuest')s=applyAction(s,s.setupOrder[s.setupIndex],{type:'setupGuest',index:4});
   while(s.phase==='setupRooms')s=applyAction(s,s.setupOrder[s.setupIndex],{type:'setupRooms',rooms:['1-1','1-2','1-3']});
   return s;

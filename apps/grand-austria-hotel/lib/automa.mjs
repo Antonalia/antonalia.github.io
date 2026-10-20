@@ -48,36 +48,44 @@ export function selectSoloDie(dice,preferred,hand){
   const max=Math.max(...pool.map(n=>dice.filter(x=>x===n).length));
   return first(pool.filter(n=>dice.filter(x=>x===n).length===max),hand);
 }
-export function progressSoloObjective(s,category,hand,log){
-  const solo=s.solo,p=s.players.find(x=>x.bot),remaining=s.objectives.filter(o=>!o.claimed.includes(p.id));
+export const opponentState=(s,id)=>s.solo?.opponents?.[id]||s.solo;
+export function progressSoloObjective(s,category,hand,log,playerId){
+  const p=s.players.find(x=>x.id===playerId)||s.players.find(x=>x.bot),solo=opponentState(s,p.id),remaining=s.objectives.filter(o=>!o.claimed.includes(p.id)&&o.claimed.length<o.points.length);
   let target=remaining.find(o=>o.category===category);
   if(!target){const min=Math.min(...remaining.map(o=>solo.progress[o.category]||0));target=first(remaining.filter(o=>(solo.progress[o.category]||0)===min),hand);}
   if(!target)return null;
   const progress=solo.progress[target.category]=(solo.progress[target.category]||0)+1;
   let vp=0;
   if(progress===3){vp=target.points[target.claimed.length]||0;target.claimed.push(p.id);p.vp+=vp;}
-  log(s,`Leopold的${target.category}目标：${progress===3?`领取${vp}分`:progress===1?'Ⅲ → 还需两次':'Ⅱ → 还需一次'}。`);
+  log(s,`${p.name}的${target.category}目标：${progress===3?`领取${vp}分`:progress===1?'Ⅲ → 还需两次':'Ⅱ → 还需一次'}。`);
   return {kind:'objective',category:target.category,progress,vp};
 }
 export function initializeSolo(s,rng,{shuffle,staffById}){
-  const p=s.players.find(x=>x.bot),human=s.players.find(x=>!x.bot);
-  p.money=0;p.kitchen={strudel:0,cake:0,wine:0,coffee:0};
-  const privateStaff=shuffle(s.staffDeck.filter(id=>staffById[id].end),rng).slice(0,5);
-  s.staffDeck=shuffle(s.staffDeck.filter(id=>!privateStaff.includes(id)),rng);
-  Object.assign(s.solo,{privateStaff,deck:shuffle(LEOPOLD_CARDS.map(x=>x.id),rng),discard:[],progress:{A:0,B:0,C:0},turns:0,lastTurn:null});
-  s.solo.initialStaff=s.staffDeck.splice(0,10);
-  human.hand=[];p.hand=[];
+  const bots=s.players.filter(x=>x.bot),human=s.players.find(x=>!x.bot);
+  if(bots.length>1)s.solo.opponents={};
+  for(const p of bots){
+    p.money=0;p.kitchen={strudel:0,cake:0,wine:0,coffee:0};p.hand=[];
+    // The custom multiple-opponent variant uses independent digital staff copies.
+    // Only 13 end staff exist, so three five-card private decks cannot share the physical deck.
+    const pool=s.solo.opponents?Object.values(staffById).filter(c=>c.end).map(c=>c.id):s.staffDeck.filter(id=>staffById[id].end);
+    const privateStaff=shuffle(pool,rng).slice(0,5);
+    if(privateStaff.length!==5)throw new Error('自动对手终局员工不足');
+    if(!s.solo.opponents)s.staffDeck=shuffle(s.staffDeck.filter(id=>!privateStaff.includes(id)),rng);
+    const data={difficulty:s.solo.difficulty,privateStaff,deck:shuffle(LEOPOLD_CARDS.map(x=>x.id),rng),discard:[],progress:{A:0,B:0,C:0},turns:0,lastTurn:null};
+    if(s.solo.opponents)s.solo.opponents[p.id]=data;else Object.assign(s.solo,data);
+  }
+  s.solo.initialStaff=s.staffDeck.splice(0,10);human.hand=[];
 }
-export function runSolo(s,{rng,shuffle,guestById,drawGuest,addEmperor,finishTurn,log}){
+export function runSolo(s,{rng,shuffle,guestById,drawGuest,addEmperor,finishTurn,log,publishActivity,now=Date.now()}){
   if(!s.solo||s.effects?.length||s.phase!=='turn'||!s.players.find(p=>p.id===s.turn?.playerId)?.bot)return s;
-  const p=s.players.find(x=>x.bot),solo=s.solo;
   // Normally exactly 14 instructions are used in seven rounds; persistence keeps
   // the remaining deck private and a bounded loop also covers consecutive turns.
-  for(let n=0;n<4&&s.phase==='turn'&&!s.effects.length&&s.turn?.playerId===p.id;n++){
+  for(let n=0;n<s.players.length*4&&s.phase==='turn'&&!s.effects.length&&s.players.find(x=>x.id===s.turn?.playerId)?.bot;n++){
+    const p=s.players.find(x=>x.id===s.turn.playerId),solo=opponentState(s,p.id),round=s.round,number=s.turn.number;
     if(!solo.deck.length){solo.deck=shuffle(solo.discard,rng);solo.discard=[];}
     const id=solo.deck.shift();solo.discard.push(id);
     const card=instruction(id,solo.difficulty),details=[];
-    log(s,`Leopold翻开指令${id}（${SOLO_LEVELS[solo.difficulty]}）。`);
+    log(s,`${p.name}翻开指令${id}（${SOLO_LEVELS[solo.difficulty]}）。`);
     for(const choice of card.guests){
       const selected=selectSoloGuest(s,p,choice.color,card.hand,guestById);
       if(!selected){details.push({kind:'guest',skipped:true});continue;}
@@ -85,23 +93,25 @@ export function runSolo(s,{rng,shuffle,guestById,drawGuest,addEmperor,finishTurn
       p.vp+=guest.vp+r.vp;r.state='occupied';p.completed.push(guest.id);
       s.market.splice(index,1);s.guestDiscard.push(guest.id);s.market.unshift(drawGuest(s));
       details.push({kind:'guest',id:guest.id,name:guest.name,roomId:r.id,vp:guest.vp,roomVp:r.vp});
-      log(s,`Leopold接待${guest.name}，入住${r.floor}0${r.col}，获得${guest.vp+r.vp}分。`);
+      log(s,`${p.name}接待${guest.name}，入住${r.floor}0${r.col}，获得${guest.vp+r.vp}分。`);
     }
     const face=selectSoloDie(s.dice,card.dice,card.hand);
-    if(face){s.dice.splice(s.dice.indexOf(face),1);details.push({kind:'die',face});log(s,`Leopold取走${face}点骰，不执行骰面主动作。`);}
+    if(face){s.dice.splice(s.dice.indexOf(face),1);details.push({kind:'die',face});log(s,`${p.name}取走${face}点骰，不执行骰面主动作。`);}
     for(const e of card.extras){
-      if(e.kind==='emperor'){addEmperor(p,e.value);details.push({kind:'emperor',amount:e.value});log(s,`Leopold的皇冠前进${e.value}格。`);}
+      if(e.kind==='emperor'){addEmperor(p,e.value);details.push({kind:'emperor',amount:e.value});log(s,`${p.name}的皇冠前进${e.value}格。`);}
       if(e.kind==='staff'){
-        const id=solo.privateStaff.shift();if(id){p.staff.push({id,usedRound:0});details.push({kind:'staff',id});log(s,'Leopold翻开一张私人终局员工。');}
+        const id=solo.privateStaff.shift();if(id){p.staff.push({id,usedRound:0});details.push({kind:'staff',id});log(s,`${p.name}翻开一张私人终局员工。`);}
       }
-      if(e.kind==='objective'){const result=progressSoloObjective(s,e.value,card.hand,log);if(result)details.push(result);}
+      if(e.kind==='objective'){const result=progressSoloObjective(s,e.value,card.hand,log,p.id);if(result)details.push(result);}
     }
     solo.turns++;solo.lastTurn={round:s.round,number:s.turn.number,card,details};
+    publishActivity?.(s,p.id,[{kind:'instruction',text:`${p.name}翻开指令${id}（${SOLO_LEVELS[solo.difficulty]}）。`},...details.map(d=>d.kind==='guest'?{kind:'room',guestId:d.id,roomId:d.roomId,text:d.skipped?`${p.name}没有可入住的市场客人。`:`${p.name}接待${d.name}，入住${d.roomId.replace('-','0')}号房，+${d.vp+d.roomVp}分。`}:d.kind==='die'?{kind:'die',face:d.face,text:`${p.name}取走${d.face}点骰。`}:d.kind==='emperor'?{kind:'emperor',text:`${p.name}皇冠前进${d.amount}格。`}:d.kind==='staff'?{kind:'staff',staffId:d.id,text:`${p.name}翻开一张终局员工。`}:{kind:'objective',text:`${p.name}推进${d.category}目标：${d.progress===3?'领取'+d.vp+'分':d.progress===1?'Ⅲ，还需两次':'Ⅱ，还需一次'}。`})],{now,round,number});
     s.roundPlayStarted=true;finishTurn(s);
   }
   return s;
 }
 export function soloView(s){
   if(!s.solo)return undefined;
-  return {bot:'leopold',difficulty:s.solo.difficulty,levelName:SOLO_LEVELS[s.solo.difficulty],progress:{...s.solo.progress},turns:s.solo.turns||0,deckCount:s.solo.deck?.length??20,privateStaffCount:s.solo.privateStaff?.length??5,lastTurn:s.solo.lastTurn?structuredClone(s.solo.lastTurn):null};
+  const opponents=s.players.filter(p=>p.bot).map(p=>{const data=opponentState(s,p.id);return {playerId:p.id,name:p.name,bot:'leopold',difficulty:data.difficulty,levelName:SOLO_LEVELS[data.difficulty],progress:{...data.progress},turns:data.turns||0,deckCount:data.deck?.length??20,privateStaffCount:data.privateStaff?.length??5,lastTurn:data.lastTurn?structuredClone(data.lastTurn):null};});
+  return {...opponents[0],botCount:opponents.length,variant:opponents.length>1?'multiple':'official',opponents};
 }
