@@ -27,7 +27,7 @@ DELETE FROM hotel.sessions WHERE expires_at < now();
 DELETE FROM hotel.rooms WHERE expires_at < now();
 ```
 
-## 前端：GitHub博客隐藏路径
+## 前端：GitHub博客小游戏入口
 
 后端就绪后，构建公开静态包（把示例域名换成游戏API实际地址）：
 
@@ -38,7 +38,7 @@ node scripts/build.mjs
 
 当前博客的 `lib/friends-hotel.cjs` 已通过Hexo生成器提供 `friends-hotel/` 前端路由，无需重复复制到 `source/`。未来发布构建时设置 `GAH_PUBLIC_API_ORIGIN` 为专用HTTPS游戏API，再运行博客构建，检查 `public/friends-hotel/config.js` 指向该公开API地址。此变量仅放API来源，不放数据库连接串、密码或令牌。独立项目的 `dist/` 仍可用于单独静态托管。
 
-当前入口按用户要求加入站内搜索，不加入导航、不写公开博文、不进入首页和归档。页面已有noindex元数据。任何使用站内搜索或拿到地址的人都可能下载公开网页代码，只有通过后端访问密码与独立会话才能读取和操作对局。
+当前入口按用户要求展示在博客“小游戏”目录，并保留站内搜索入口。页面已有noindex元数据。任何使用站内搜索或拿到地址的人都可能下载公开网页代码，只有通过后端访问密码与独立会话才能读取和操作对局。
 
 `lib/`和`api/`作为应用源码保存在仓库的`apps/`中，不会被Hexo发布为网页资源。不要提交`.private/`、`.env`、数据库连接、密码哈希、真实会话、对局存档或重连文件。后端部署时在Vercel选择Root Directory为`apps/grand-austria-hotel`。
 
